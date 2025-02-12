@@ -1,0 +1,1 @@
+This is a personal project to develop a GB emulator, this is mainly for practice with emulating hardware.
