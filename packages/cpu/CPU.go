@@ -1,5 +1,6 @@
 package GBCPU
 
+// Struct to emulate the CPU and it's registry
 type CPU struct {
 	registerA     uint8
 	registerF     uint8
@@ -15,7 +16,12 @@ type CPU struct {
 	cycles        uint32
 }
 
-func CPUinit() *CPU {
+/*
+Initializes the CPU struct with the proper values
+also note that values and functions that are public start their name
+capaltilized. This is not one of those.
+*/
+func initCPU() *CPU {
 	cpu := new(CPU)
 	cpu.registerA = 0
 	cpu.registerF = 0
