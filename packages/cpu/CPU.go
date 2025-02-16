@@ -21,8 +21,7 @@ Initializes the CPU struct with the proper values
 also note that values and functions that are public start their name
 capaltilized. This is not one of those.
 */
-func initCPU() *CPU {
-	cpu := new(CPU)
+func initCPU(cpu *CPU) *CPU {
 	cpu.registerA = 0
 	cpu.registerF = 0
 	cpu.registerB = 0
@@ -35,5 +34,12 @@ func initCPU() *CPU {
 	cpu.registerSP = 0x0100
 	cpu.registerPC = 0xFFFE
 	cpu.cycles = 0
+	return cpu
+}
+
+// Makes a new CPU struct and initializes it
+func NewCPU() *CPU {
+	cpu := new(CPU)
+	cpu = initCPU(cpu)
 	return cpu
 }
