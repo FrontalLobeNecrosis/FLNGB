@@ -18,28 +18,61 @@ func loadLoader(loader *Opcode_function_loader, cpu *CPU) {
 			loader.eightBitFuncArray[i] = LDn
 		}
 
-		if (i >= 0x78 && i <= 0x7F) || (i >= 0x40 && i <= 0x46) || (i >= 0x48 &&
-			i <= 0x4E) || (i >= 0x50 && i <= 0x56) || (i >= 0x58 && i <= 0x5E) || (i >= 0x60 &&
-			i <= 0x66) || (i >= 0x68 && i <= 0x6E) || (i >= 0x70 && i <= 0x75) {
+		if (i >= 0x77 && i <= 0x7F) || (i >= 0x40 && i <= 0x75) || i == 36 {
 
 			loader.eightBitFuncArray[i] = LDr
 
 			if i >= 0x78 && i <= 0x7F {
 				loader.eightbitparam1[i] = cpu.registerA
-			} else if i >= 0x40 && i >= 0x46 {
+			} else if i >= 0x40 && i >= 0x47 {
 				loader.eightbitparam1[i] = cpu.registerB
-			} else if i >= 0x48 && i <= 0x4E {
+			} else if i >= 0x48 && i <= 0x4F {
 				loader.eightbitparam1[i] = cpu.registerC
-			} else if i >= 0x50 && i <= 0x56 {
+			} else if i >= 0x50 && i <= 0x57 {
 				loader.eightbitparam1[i] = cpu.registerD
-			} else if i >= 0x58 && i <= 0x5E {
+			} else if i >= 0x58 && i <= 0x5F {
 				loader.eightbitparam1[i] = cpu.registerE
-			} else if i >= 0x60 && i <= 0x66 {
+			} else if i >= 0x60 && i <= 0x67 {
 				loader.eightbitparam1[i] = cpu.registerH
-			} else if i >= 0x68 && i <= 0x6E {
+			} else if i >= 0x68 && i <= 0x6F {
 				loader.eightbitparam1[i] = cpu.registerL
-			} else if i >= 0x70 && i <= 0x75 {
+			} else if (i >= 0x70 && i <= 0x75) || i == 36 {
 				loader.eightbitparam1[i] = cpu.registerHL
+			}
+
+			remainder := i % 8
+
+			switch remainder {
+			case 0:
+				loader.eightbitparam2[i] = cpu.registerB
+				break
+			case 1:
+				loader.eightbitparam2[i] = cpu.registerC
+				break
+			case 2:
+				loader.eightbitparam2[i] = cpu.registerC
+				break
+			case 3:
+				loader.eightbitparam2[i] = cpu.registerC
+				break
+			case 4:
+				loader.eightbitparam2[i] = cpu.registerC
+				break
+			case 5:
+				loader.eightbitparam2[i] = cpu.registerC
+				break
+			case 6:
+				if i == 36 {
+					// This is a temporary param for immediate value,
+					// replace registryA with that later
+					loader.eightbitparam2[i] = cpu.registerA
+				} else {
+					loader.eightbitparam2[i] = cpu.registerC
+				}
+				break
+			case 7:
+				loader.eightbitparam2[i] = cpu.registerA
+				break
 			}
 
 		}
