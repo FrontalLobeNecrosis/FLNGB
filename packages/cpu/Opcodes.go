@@ -50,16 +50,16 @@ func loadLoader(loader *Opcode_function_loader, cpu *CPU) {
 				loader.eightbitparam2[i] = cpu.registerC
 				break
 			case 2:
-				loader.eightbitparam2[i] = cpu.registerC
+				loader.eightbitparam2[i] = cpu.registerD
 				break
 			case 3:
-				loader.eightbitparam2[i] = cpu.registerC
+				loader.eightbitparam2[i] = cpu.registerE
 				break
 			case 4:
-				loader.eightbitparam2[i] = cpu.registerC
+				loader.eightbitparam2[i] = cpu.registerH
 				break
 			case 5:
-				loader.eightbitparam2[i] = cpu.registerC
+				loader.eightbitparam2[i] = cpu.registerL
 				break
 			case 6:
 				if i == 36 {
