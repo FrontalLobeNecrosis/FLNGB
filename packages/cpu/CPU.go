@@ -43,3 +43,16 @@ func NewCPU() *CPU {
 	cpu = initCPU(cpu)
 	return cpu
 }
+
+func initMemory() []uint8 {
+	memory := [0xFFFF]uint8{}
+	for i := 0; i < len(memory); i++ {
+		memory[i] = 0
+	}
+	return memory[:]
+}
+
+func NewMemory() []uint8 {
+	memory := initMemory()
+	return memory
+}
