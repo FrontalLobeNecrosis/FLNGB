@@ -10,9 +10,10 @@ type Opcode_function_loader struct {
 	sixteenbitparam2    [255]uint16
 }
 
-// Function takes Opcode_function_loader and the CPU and loades the loader
+// Function makes an Opcode_function_loader and  takes a CPU and loades the loader
 // with all the functions and params that will be called by Opcodes
-func loadLoader(loader *Opcode_function_loader, cpu *CPU) {
+func initLoader(cpu *CPU) *Opcode_function_loader {
+	loader := new(Opcode_function_loader)
 
 	for i := 0; i <= 255; i++ {
 
@@ -80,6 +81,12 @@ func loadLoader(loader *Opcode_function_loader, cpu *CPU) {
 		}
 
 	}
+	return loader
+}
+
+func NewLoader(cpu *CPU) *Opcode_function_loader {
+	loader := initLoader(cpu)
+	return loader
 }
 
 // LDn loads a value from a register nn into another register
@@ -97,14 +104,10 @@ func LDr(r1 uint8, r2 uint8) uint8 {
 	return 0
 }
 
-/*
-Takes in an opcode and runs the function associated with that code
-param: an 8 bit or 16 bit value (16 bit has to begin at 0xCB00 and ends at 0xCBFF)
-*/
-func ReadOpcode(opcode uint16) {
-	cpu := NewCPU()
-	loader := new(Opcode_function_loader)
-	loadLoader(loader, cpu)
+// Takes in an opcode and runs the function associated with that code
+// param: an 8 bit or 16 bit value (16 bit has to begin at 0xCB00 and ends at 0xCBFF)
+func ReadOpcode(opcode uint16, cpu *CPU) {
+	loader := NewLoader(cpu)
 	if opcode > 255 {
 		function := loader.sixteenBitFuncArray[opcode-0xCB00]
 		first := loader.sixteenbitparam1[opcode-0xCB00]
