@@ -10,6 +10,8 @@ type Opcode_function_loader struct {
 	sixteenbitparam2    [255]uint16
 }
 
+// Function takes Opcode_function_loader and the CPU and loades the loader
+// with all the functions and params that will be called by Opcodes
 func loadLoader(loader *Opcode_function_loader, cpu *CPU) {
 
 	for i := 0; i <= 255; i++ {
@@ -80,15 +82,16 @@ func loadLoader(loader *Opcode_function_loader, cpu *CPU) {
 	}
 }
 
-/*
-LD loads a value from a register nn into another register
-or immediate value n
-*/
+// LDn loads a value from a register nn into another register
+// or immediate value n
+
 func LDn(nn uint8, n uint8) uint8 {
 	n = nn
 	return n
 }
 
+// LDr loads a value from a register r2 into another register
+// or immediate value r1
 func LDr(r1 uint8, r2 uint8) uint8 {
 	r1 = r2
 	return 0

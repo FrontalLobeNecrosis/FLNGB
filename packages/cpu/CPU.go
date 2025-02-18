@@ -44,6 +44,7 @@ func NewCPU() *CPU {
 	return cpu
 }
 
+// Initializes memory and passes it out as a slice
 func initMemory() []uint8 {
 	memory := [0xFFFF]uint8{}
 	for i := 0; i < len(memory); i++ {
@@ -52,6 +53,8 @@ func initMemory() []uint8 {
 	return memory[:]
 }
 
+// Calls intialize memory so that you can grab a new memory
+// and not accidentaly initialize your already existing memory
 func NewMemory() []uint8 {
 	memory := initMemory()
 	return memory
