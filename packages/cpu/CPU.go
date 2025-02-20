@@ -2,18 +2,17 @@ package GBCPU
 
 // Struct to emulate the CPU and it's registry
 type CPU struct {
-	registerA     uint8
-	registerF     uint8
-	registerB     uint8
-	registerC     uint8
-	registerD     uint8
-	registerE     uint8
-	registerH     uint8
-	registerL     uint8
-	flagresgister uint8
-	registerSP    uint16
-	registerPC    uint16
-	cycles        uint32
+	registerA  uint8
+	registerF  uint8
+	registerB  uint8
+	registerC  uint8
+	registerD  uint8
+	registerE  uint8
+	registerH  uint8
+	registerL  uint8
+	registerSP uint16
+	registerPC uint16
+	cycles     uint32
 }
 
 /*
@@ -30,7 +29,6 @@ func initCPU(cpu *CPU) *CPU {
 	cpu.registerE = 0
 	cpu.registerH = 0
 	cpu.registerL = 0
-	cpu.flagresgister = 0b00000000
 	cpu.registerSP = 0x0100
 	cpu.registerPC = 0xFFFE
 	cpu.cycles = 0
