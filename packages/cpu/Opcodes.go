@@ -12,8 +12,11 @@ type Opcode_function_caller struct {
 
 // Function makes an Opcode_function_caller and takes a CPU struct and loades the
 // caller with all the functions and params that will be called by Opcodes
-func initCaller(cpu *CPU) *Opcode_function_caller {
+func initCaller(cpu *CPU, memory []uint8) *Opcode_function_caller {
 	caller := new(Opcode_function_caller)
+	var HL uint16 = (uint16(cpu.registerH) << 8) | uint16(cpu.registerL)
+	var BC uint16 = (uint16(cpu.registerB) << 8) | uint16(cpu.registerC)
+	var DE uint16 = (uint16(cpu.registerD) << 8) | uint16(cpu.registerE)
 
 	for i := 0; i <= 255; i++ {
 
@@ -40,7 +43,9 @@ func initCaller(cpu *CPU) *Opcode_function_caller {
 			} else if i >= 0x68 && i <= 0x6F {
 				caller.eightbitparam1[i] = cpu.registerL
 			} else if (i >= 0x70 && i <= 0x75) || i == 36 {
-				caller.eightbitparam1[i] = cpu.registerHL
+
+				value := memory[HL]
+				caller.eightbitparam1[i] = value
 			}
 
 			remainder := i % 8
@@ -84,8 +89,8 @@ func initCaller(cpu *CPU) *Opcode_function_caller {
 	return caller
 }
 
-func NewCaller(cpu *CPU) *Opcode_function_caller {
-	caller := initCaller(cpu)
+func NewCaller(cpu *CPU, memory []uint8) *Opcode_function_caller {
+	caller := initCaller(cpu, memory)
 	return caller
 }
 
@@ -109,17 +114,19 @@ func LDr(r1 uint8, r2 uint8) uint8 {
 
 // Takes in an opcode and runs the function with appropriate params associated with that code
 // param: an 8 bit or 16 bit value (16 bit has to begin at 0xCB00 and ends at 0xCBFF)
-func ReadOpcode(opcode uint16, cpu *CPU) {
-	caller := NewCaller(cpu)
+func ReadOpcode(opcode uint16, cpu *CPU, memory []uint8) uint16 {
+	caller := NewCaller(cpu, memory)
 	if opcode > 255 {
 		function := caller.sixteenBitFuncArray[opcode-0xCB00]
 		first := caller.sixteenbitparam1[opcode-0xCB00]
 		second := caller.sixteenbitparam2[opcode-0xCB00]
-		function(first, second)
+		result := function(first, second)
+		return result
 	} else {
 		function := caller.eightBitFuncArray[opcode]
 		first := caller.eightbitparam1[opcode]
 		second := caller.eightbitparam2[opcode]
-		function(first, second)
+		result := function(first, second)
+		return uint16(result)
 	}
 }
