@@ -14,9 +14,6 @@ type Opcode_function_caller struct {
 // caller with all the functions and params that will be called by Opcodes
 func initCaller(cpu *CPU, memory []uint8) *Opcode_function_caller {
 	caller := new(Opcode_function_caller)
-	var HL uint16 = (uint16(cpu.registerH) << 8) | uint16(cpu.registerL)
-	var BC uint16 = (uint16(cpu.registerB) << 8) | uint16(cpu.registerC)
-	var DE uint16 = (uint16(cpu.registerD) << 8) | uint16(cpu.registerE)
 
 	for i := 0; i <= 255; i++ {
 
@@ -43,8 +40,7 @@ func initCaller(cpu *CPU, memory []uint8) *Opcode_function_caller {
 			} else if i >= 0x68 && i <= 0x6F {
 				caller.eightbitparam1[i] = cpu.registerL
 			} else if (i >= 0x70 && i <= 0x75) || i == 36 {
-
-				value := memory[HL]
+				value := memory[cpu.registerHL]
 				caller.eightbitparam1[i] = value
 			}
 
