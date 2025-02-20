@@ -10,6 +10,10 @@ type CPU struct {
 	registerE  uint8
 	registerH  uint8
 	registerL  uint8
+	registerAF uint16
+	registerBC uint16
+	registerDE uint16
+	registerHL uint16
 	registerSP uint16
 	registerPC uint16
 	cycles     uint32
@@ -21,16 +25,20 @@ also note that values and functions that are public start their name
 capaltilized. This is not one of those.
 */
 func initCPU(cpu *CPU) *CPU {
-	cpu.registerA = 0
+	cpu.registerA = 01
 	cpu.registerF = 0
-	cpu.registerB = 0
-	cpu.registerC = 0
+	cpu.registerB = 0xFF
+	cpu.registerC = 0x13
 	cpu.registerD = 0
-	cpu.registerE = 0
-	cpu.registerH = 0
-	cpu.registerL = 0
-	cpu.registerSP = 0x0100
-	cpu.registerPC = 0xFFFE
+	cpu.registerE = 0xC1
+	cpu.registerH = 0x84
+	cpu.registerL = 03
+	cpu.registerAF = (uint16(cpu.registerA) << 8) | uint16(cpu.registerF)
+	cpu.registerBC = (uint16(cpu.registerB) << 8) | uint16(cpu.registerC)
+	cpu.registerDE = (uint16(cpu.registerD) << 8) | uint16(cpu.registerE)
+	cpu.registerHL = (uint16(cpu.registerH) << 8) | uint16(cpu.registerL)
+	cpu.registerSP = 0xFFFE
+	cpu.registerPC = 0x0100
 	cpu.cycles = 0
 	return cpu
 }
@@ -40,6 +48,44 @@ func NewCPU() *CPU {
 	cpu := new(CPU)
 	cpu = initCPU(cpu)
 	return cpu
+}
+
+// Makes sure paired and single registers are properly equivilent,
+// this is to be used if one of the single registries were changed
+func SingleToPaired(cpu *CPU) {
+	if cpu.registerAF != ((uint16(cpu.registerA) << 8) | uint16(cpu.registerF)) {
+		cpu.registerAF = ((uint16(cpu.registerA) << 8) | uint16(cpu.registerF))
+	}
+	if cpu.registerBC != ((uint16(cpu.registerB) << 8) | uint16(cpu.registerC)) {
+		cpu.registerBC = ((uint16(cpu.registerB) << 8) | uint16(cpu.registerC))
+	}
+	if cpu.registerDE != ((uint16(cpu.registerD) << 8) | uint16(cpu.registerE)) {
+		cpu.registerDE = ((uint16(cpu.registerD) << 8) | uint16(cpu.registerE))
+	}
+	if cpu.registerHL != ((uint16(cpu.registerH) << 8) | uint16(cpu.registerL)) {
+		cpu.registerHL = ((uint16(cpu.registerH) << 8) | uint16(cpu.registerL))
+	}
+}
+
+// Makes sure paired and single registers are properly equivilent,
+// this is to be used if one of the paired registries were changed
+func PairedToSingle(cpu *CPU) {
+	if cpu.registerAF != ((uint16(cpu.registerA) << 8) | uint16(cpu.registerF)) {
+		cpu.registerA = uint8((cpu.registerAF - uint16(cpu.registerF)) >> 8)
+		cpu.registerF = uint8(cpu.registerAF - (uint16(cpu.registerA) << 8))
+	}
+	if cpu.registerBC != ((uint16(cpu.registerB) << 8) | uint16(cpu.registerC)) {
+		cpu.registerB = uint8((cpu.registerBC - uint16(cpu.registerC)) >> 8)
+		cpu.registerC = uint8(cpu.registerBC - (uint16(cpu.registerB) << 8))
+	}
+	if cpu.registerDE != ((uint16(cpu.registerD) << 8) | uint16(cpu.registerE)) {
+		cpu.registerD = uint8((cpu.registerDE - uint16(cpu.registerE)) >> 8)
+		cpu.registerE = uint8(cpu.registerDE - (uint16(cpu.registerD) << 8))
+	}
+	if cpu.registerHL != ((uint16(cpu.registerH) << 8) | uint16(cpu.registerL)) {
+		cpu.registerH = uint8((cpu.registerHL - uint16(cpu.registerL)) >> 8)
+		cpu.registerL = uint8(cpu.registerHL - (uint16(cpu.registerH) << 8))
+	}
 }
 
 // Initializes memory and passes it out as a slice
