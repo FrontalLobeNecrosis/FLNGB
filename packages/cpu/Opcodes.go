@@ -17,9 +17,36 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 
 	for i := 0; i <= 255; i++ {
 
-		if i < 37 && i%8 == 6 {
+		if i < 0x3E && i%8 == 6 {
 			caller.eightBitFuncArray[i] = LDn
 			caller.eightbitparam2[i] = uint8(immediateValue)
+
+			switch i {
+			case 0x06:
+				caller.eightbitparam1[i] = cpu.registerB
+				break
+			case 0x0E:
+				caller.eightbitparam1[i] = cpu.registerC
+				break
+			case 0x16:
+				caller.eightbitparam1[i] = cpu.registerD
+				break
+			case 0x1E:
+				caller.eightbitparam1[i] = cpu.registerE
+				break
+			case 0x26:
+				caller.eightbitparam1[i] = cpu.registerH
+				break
+			case 0x2E:
+				caller.eightbitparam1[i] = cpu.registerL
+				break
+			case 0x36:
+				caller.eightbitparam1[i] = memory[cpu.registerHL]
+				break
+			case 0x3E:
+				caller.eightbitparam1[i] = cpu.registerA
+				break
+			}
 		}
 
 		if (i >= 0x77 && i <= 0x7F) || (i >= 0x40 && i <= 0x75) {
@@ -67,13 +94,31 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 				caller.eightbitparam2[i] = cpu.registerL
 				break
 			case 6:
-				caller.eightbitparam2[i] = cpu.registerC
+				caller.eightbitparam2[i] = memory[cpu.registerHL]
 				break
 			case 7:
 				caller.eightbitparam2[i] = cpu.registerA
 				break
 			}
 
+		}
+
+		switch i {
+		case 0x0A:
+			caller.eightBitFuncArray[i] = LDr
+			caller.eightbitparam1[i] = cpu.registerA
+			caller.eightbitparam2[i] = memory[cpu.registerBC]
+			break
+		case 0x1A:
+			caller.eightBitFuncArray[i] = LDr
+			caller.eightbitparam1[i] = cpu.registerA
+			caller.eightbitparam2[i] = memory[cpu.registerDE]
+			break
+		case 0xFA:
+			caller.eightBitFuncArray[i] = LDr
+			caller.eightbitparam1[i] = cpu.registerA
+			caller.eightbitparam2[i] = memory[immediateValue]
+			break
 		}
 
 	}
