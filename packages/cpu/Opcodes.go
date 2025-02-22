@@ -17,11 +17,12 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 
 	for i := 0; i <= 255; i++ {
 
-		if i < 30 && i%8 == 6 {
+		if i < 37 && i%8 == 6 {
 			caller.eightBitFuncArray[i] = LDn
+			caller.eightbitparam2[i] = uint8(immediateValue)
 		}
 
-		if (i >= 0x77 && i <= 0x7F) || (i >= 0x40 && i <= 0x75) || i == 36 {
+		if (i >= 0x77 && i <= 0x7F) || (i >= 0x40 && i <= 0x75) {
 
 			caller.eightBitFuncArray[i] = LDr
 
@@ -66,13 +67,7 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 				caller.eightbitparam2[i] = cpu.registerL
 				break
 			case 6:
-				if i == 36 {
-					// This is a temporary param for immediate value,
-					// replace registryA with that later
-					caller.eightbitparam2[i] = cpu.registerA
-				} else {
-					caller.eightbitparam2[i] = cpu.registerC
-				}
+				caller.eightbitparam2[i] = cpu.registerC
 				break
 			case 7:
 				caller.eightbitparam2[i] = cpu.registerA
@@ -125,17 +120,15 @@ func ReadOpcode(opcode uint32, cpu *CPU, memory []uint8) {
 
 	caller := NewCaller(cpu, memory, immediateValue)
 
-	if (opcode < 0x30) && (opcode%8 != 6) {
-		function := caller.eightBitFuncArray[opcode]
-		first := caller.eightbitparam1[opcode]
-		second := caller.eightbitparam2[opcode]
-		function(first, second)
-	}
-
 	if (opcode > 255) && ((opcode & 0xCB00) == 0xCB00) {
 		function := caller.sixteenBitFuncArray[opcode-0xCB00]
 		first := caller.sixteenbitparam1[opcode-0xCB00]
 		second := caller.sixteenbitparam2[opcode-0xCB00]
+		function(first, second)
+	} else {
+		function := caller.eightBitFuncArray[opcode]
+		first := caller.eightbitparam1[opcode]
+		second := caller.eightbitparam2[opcode]
 		function(first, second)
 	}
 
