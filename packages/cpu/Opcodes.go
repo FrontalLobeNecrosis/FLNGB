@@ -2,17 +2,17 @@ package GBCPU
 
 // This struct is to call functions from an array based on opcode
 type Opcode_function_caller struct {
-	eightBitFuncArray   [255]func(uint8, uint8) uint8
+	eightBitFuncArray   [255]func(uint8, uint8)
 	eightbitparam1      [255]uint8
 	eightbitparam2      [255]uint8
-	sixteenBitFuncArray [255]func(uint16, uint16) uint16
+	sixteenBitFuncArray [255]func(uint16, uint16)
 	sixteenbitparam1    [255]uint16
 	sixteenbitparam2    [255]uint16
 }
 
 // Function makes an Opcode_function_caller and takes a CPU struct and loades the
 // caller with all the functions and params that will be called by Opcodes
-func initCaller(cpu *CPU, memory []uint8) *Opcode_function_caller {
+func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_function_caller {
 	caller := new(Opcode_function_caller)
 
 	for i := 0; i <= 255; i++ {
@@ -85,44 +85,58 @@ func initCaller(cpu *CPU, memory []uint8) *Opcode_function_caller {
 	return caller
 }
 
-func NewCaller(cpu *CPU, memory []uint8) *Opcode_function_caller {
-	caller := initCaller(cpu, memory)
+func NewCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_function_caller {
+	caller := initCaller(cpu, memory, immediateValue)
 	return caller
 }
 
 // LDn loads a value from a register nn into another register
 // or immediate value n
 // param: nn, a register to have a value read from
-// 		  n, a register or immediate value to have a value written to
-func LDn(nn uint8, n uint8) uint8 {
-	n = nn
-	return n
+// 		  n, a register or an 8 bit immediate value to have a value written to
+func LDn(nn uint8, n uint8) {
+	nn = n
 }
 
 // LDr loads a value from a register r2 into another register
 // or immediate value r1
 // param: r2, a register to have a value read from
 // 		  r1, a register or immediate value to have a value written to
-func LDr(r1 uint8, r2 uint8) uint8 {
+func LDr(r1 uint8, r2 uint8) {
 	r1 = r2
-	return 0
 }
 
 // Takes in an opcode and runs the function with appropriate params associated with that code
-// param: an 8 bit or 16 bit value (16 bit has to begin at 0xCB00 and ends at 0xCBFF)
-func ReadOpcode(opcode uint16, cpu *CPU, memory []uint8) uint16 {
-	caller := NewCaller(cpu, memory)
-	if opcode > 255 {
-		function := caller.sixteenBitFuncArray[opcode-0xCB00]
-		first := caller.sixteenbitparam1[opcode-0xCB00]
-		second := caller.sixteenbitparam2[opcode-0xCB00]
-		result := function(first, second)
-		return result
-	} else {
+// param: an opcode that can be 8 or 16 bit value (16 bit has to begin at 0xCB00 and ends at 0xCBFF)
+// and might be followed by an 8 or 16 bit immediate value
+func ReadOpcode(opcode uint32, cpu *CPU, memory []uint8) {
+
+	var immediateValue uint16
+
+	if (opcode > 0xFF) && ((opcode&0xCB00) != 0xCB00) || opcode > 0xFFFF {
+		if opcode > 0xFFFF {
+			immediateValue = uint16(opcode)
+			opcode = opcode >> 16
+		} else {
+			immediateValue = uint16(opcode) & 0xFF
+			opcode = opcode >> 8
+		}
+	}
+
+	caller := NewCaller(cpu, memory, immediateValue)
+
+	if (opcode < 0x30) && (opcode%8 != 6) {
 		function := caller.eightBitFuncArray[opcode]
 		first := caller.eightbitparam1[opcode]
 		second := caller.eightbitparam2[opcode]
-		result := function(first, second)
-		return uint16(result)
+		function(first, second)
 	}
+
+	if (opcode > 255) && ((opcode & 0xCB00) == 0xCB00) {
+		function := caller.sixteenBitFuncArray[opcode-0xCB00]
+		first := caller.sixteenbitparam1[opcode-0xCB00]
+		second := caller.sixteenbitparam2[opcode-0xCB00]
+		function(first, second)
+	}
+
 }
