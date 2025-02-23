@@ -126,29 +126,21 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 			break
 		case 0x22:
 			caller.eightBitFuncArray[i] = LDr
-			// TODO: Find solution to incrementing the 
-			// register as you pass it as an argument for an array
-			caller.eightbitparam2[i] = memory[cpu.registerHL++]
-			caller.eightbitparam1[i] = cpu.registerA
+			caller.eightbitparam1[i] = GetMemoryAndIncrement(memory, &cpu.registerHL)
+			caller.eightbitparam2[i] = cpu.registerA
 		case 0x2A:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = cpu.registerA
-			// TODO: Find solution to incrementing the 
-			// register as you pass it as an argument for an array
-			caller.eightbitparam2[i] = memory[cpu.registerHL++]
+			caller.eightbitparam2[i] = GetMemoryAndIncrement(memory, &cpu.registerHL)
 		case 0x32:
 			caller.eightBitFuncArray[i] = LDr
-			// TODO: Find solution to deincrementing the 
-			// register as you pass it as an argument for an array
-			caller.eightbitparam2[i] = memory[cpu.registerHL--]
-			caller.eightbitparam1[i] = cpu.registerA
+			caller.eightbitparam1[i] = GetMemoryAndDeincrement(memory, &cpu.registerHL)
+			caller.eightbitparam2[i] = cpu.registerA
 			break
 		case 0x3A:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = cpu.registerA
-			// TODO: Find solution to deincrementing the 
-			// register as you pass it as an argument for an array
-			caller.eightbitparam2[i] = memory[cpu.registerHL--]
+			caller.eightbitparam2[i] = GetMemoryAndDeincrement(memory, &cpu.registerHL)
 			break
 		case 0xE0:
 			caller.eightBitFuncArray[i] = LDr
@@ -192,8 +184,8 @@ func NewCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_function
 
 // LDn loads a value from a register nn into another register
 // or immediate value n
-// param: nn, a register to have a value read from
-// 		  n, a register or an 8 bit immediate value to have a value written to
+// param: nn, a register to have a value written to
+// 		  n, a register or an 8 bit immediate value to have a value read to
 func LDn(nn uint8, n uint8) {
 	nn = n
 }

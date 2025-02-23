@@ -90,7 +90,7 @@ func PairedToSingle(cpu *CPU) {
 
 // Initializes memory and passes it out as a slice
 func initMemory() []uint8 {
-	memory := [0xFFFF]uint8{}
+	memory := [0x10000]uint8{}
 	for i := 0; i < len(memory); i++ {
 		memory[i] = 0
 	}
@@ -102,4 +102,14 @@ func initMemory() []uint8 {
 func NewMemory() []uint8 {
 	memory := initMemory()
 	return memory
+}
+
+func GetMemoryAndIncrement(memory []uint8, address *uint16) uint8 {
+	*address++
+	return memory[*address]
+}
+
+func GetMemoryAndDeincrement(memory []uint8, address *uint16) uint8 {
+	*address--
+	return memory[*address]
 }
