@@ -104,15 +104,75 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 		}
 
 		switch i {
+		case 0x02:
+			caller.eightBitFuncArray[i] = LDr
+			caller.eightbitparam1[i] = memory[cpu.registerBC]
+			caller.eightbitparam2[i] = cpu.registerA
+			break
 		case 0x0A:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = cpu.registerA
 			caller.eightbitparam2[i] = memory[cpu.registerBC]
 			break
+		case 0x12:
+			caller.eightBitFuncArray[i] = LDr
+			caller.eightbitparam1[i] = memory[cpu.registerDE]
+			caller.eightbitparam2[i] = cpu.registerA
+			break
 		case 0x1A:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = cpu.registerA
 			caller.eightbitparam2[i] = memory[cpu.registerDE]
+			break
+		case 0x22:
+			caller.eightBitFuncArray[i] = LDr
+			// TODO: Find solution to incrementing the 
+			// register as you pass it as an argument for an array
+			caller.eightbitparam2[i] = memory[cpu.registerHL++]
+			caller.eightbitparam1[i] = cpu.registerA
+		case 0x2A:
+			caller.eightBitFuncArray[i] = LDr
+			caller.eightbitparam1[i] = cpu.registerA
+			// TODO: Find solution to incrementing the 
+			// register as you pass it as an argument for an array
+			caller.eightbitparam2[i] = memory[cpu.registerHL++]
+		case 0x32:
+			caller.eightBitFuncArray[i] = LDr
+			// TODO: Find solution to deincrementing the 
+			// register as you pass it as an argument for an array
+			caller.eightbitparam2[i] = memory[cpu.registerHL--]
+			caller.eightbitparam1[i] = cpu.registerA
+			break
+		case 0x3A:
+			caller.eightBitFuncArray[i] = LDr
+			caller.eightbitparam1[i] = cpu.registerA
+			// TODO: Find solution to deincrementing the 
+			// register as you pass it as an argument for an array
+			caller.eightbitparam2[i] = memory[cpu.registerHL--]
+			break
+		case 0xE0:
+			caller.eightBitFuncArray[i] = LDr
+			caller.eightbitparam1[i] = memory[0xFF00+immediateValue]
+			caller.eightbitparam2[i] = cpu.registerA
+			break
+		case 0xE2:
+			caller.eightBitFuncArray[i] = LDr
+			caller.eightbitparam1[i] = memory[0xFF00+uint16(cpu.registerC)]
+			caller.eightbitparam2[i] = cpu.registerA
+			break
+		case 0xEA:
+			caller.eightBitFuncArray[i] = LDr
+			caller.eightbitparam1[i] = memory[immediateValue]
+			caller.eightbitparam2[i] = cpu.registerA
+			break
+		case 0xF0:
+			caller.eightBitFuncArray[i] = LDr
+			caller.eightbitparam2[i] = cpu.registerA
+			caller.eightbitparam1[i] = memory[0xFF00+immediateValue]
+		case 0xF2:
+			caller.eightBitFuncArray[i] = LDr
+			caller.eightbitparam1[i] = cpu.registerA
+			caller.eightbitparam2[i] = memory[0xFF00+uint16(cpu.registerC)]
 			break
 		case 0xFA:
 			caller.eightBitFuncArray[i] = LDr
