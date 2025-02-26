@@ -5,8 +5,6 @@ type Opcode_function_caller struct {
 	eightBitFuncArray   [255]func(uint16, uint16, *CPU, []uint8)
 	eightbitparam1      [255]uint16
 	eightbitparam2      [255]uint16
-	eightbitparam3      [255]*CPU
-	eightbitparam4      [255][]uint8
 	sixteenBitFuncArray [255]func(uint16, uint16)
 	sixteenbitparam1    [255]uint16
 	sixteenbitparam2    [255]uint16
@@ -18,9 +16,6 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 	caller := new(Opcode_function_caller)
 
 	for i := 0; i <= 255; i++ {
-
-		caller.eightbitparam3[i] = cpu
-		caller.eightbitparam4[i] = memory
 
 		if i <= 0x31 && i%16 == 1 {
 			caller.eightBitFuncArray[i] = LD16b
@@ -70,6 +65,46 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 				break
 			case 0x3E:
 				caller.eightbitparam1[i] = uint16(cpu.registerA)
+				break
+			}
+		}
+
+		if (i <= 0xF5) && (i >= 0xC5) && (i%16 == 5) {
+			caller.eightBitFuncArray[i] = PUSH
+			caller.eightbitparam1[i] = cpu.registerSP
+
+			switch i {
+			case 0xC5:
+				caller.eightbitparam2[i] = cpu.registerBC
+				break
+			case 0xD5:
+				caller.eightbitparam2[i] = cpu.registerDE
+				break
+			case 0xE5:
+				caller.eightbitparam2[i] = cpu.registerHL
+				break
+			case 0xF5:
+				caller.eightbitparam2[i] = cpu.registerAF
+				break
+			}
+		}
+
+		if (i <= 0xF1) && (i >= 0xC1) && (i%16 == 1) {
+			caller.eightBitFuncArray[i] = POP
+			caller.eightbitparam1[i] = cpu.registerSP
+
+			switch i {
+			case 0xC1:
+				caller.eightbitparam2[i] = cpu.registerBC
+				break
+			case 0xD1:
+				caller.eightbitparam2[i] = cpu.registerDE
+				break
+			case 0xE1:
+				caller.eightbitparam2[i] = cpu.registerHL
+				break
+			case 0xF1:
+				caller.eightbitparam2[i] = cpu.registerAF
 				break
 			}
 		}
@@ -258,8 +293,12 @@ func LDHL(r uint16, value uint16, cpu *CPU, memory []uint8) {
 }
 
 func PUSH(r uint16, value uint16, cpu *CPU, memory []uint8) {
-	r -= 2
-	Write16bToMemory(cpu.registerSP, value, memory)
+	r--
+	Write16bToMemory(r, value, memory)
+}
+
+func POP(r1 uint16, r2 uint16, cpu *CPU, memory []uint8) {
+	Read16bFromMemory(r1, r2, memory)
 }
 
 // Takes in an opcode and runs the function with appropriate params associated with that code
@@ -294,9 +333,7 @@ func ReadOpcode(opcode uint32, cpu *CPU, memory []uint8) {
 		function := caller.eightBitFuncArray[opcode]
 		first := caller.eightbitparam1[opcode]
 		second := caller.eightbitparam2[opcode]
-		third := caller.eightbitparam3[opcode]
-		fourth := caller.eightbitparam4[opcode]
-		function(first, second, third, fourth)
+		function(first, second, cpu, memory)
 	}
 
 }
