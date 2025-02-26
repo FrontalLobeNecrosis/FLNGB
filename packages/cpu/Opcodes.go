@@ -2,20 +2,25 @@ package GBCPU
 
 // This struct is to call functions from an array based on opcode
 type Opcode_function_caller struct {
-	eightBitFuncArray   [255]func(uint16, uint16)
+	eightBitFuncArray   [255]func(uint16, uint16, *CPU, []uint8)
 	eightbitparam1      [255]uint16
 	eightbitparam2      [255]uint16
+	eightbitparam3      [255]*CPU
+	eightbitparam4      [255][]uint8
 	sixteenBitFuncArray [255]func(uint16, uint16)
 	sixteenbitparam1    [255]uint16
 	sixteenbitparam2    [255]uint16
 }
 
 // Function makes an Opcode_function_caller and takes a CPU struct and loades the
-// caller with all the functions and params that will be called by Opcodes
+// caller with all the functions and params that will be called by opcodes
 func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_function_caller {
 	caller := new(Opcode_function_caller)
 
 	for i := 0; i <= 255; i++ {
+
+		caller.eightbitparam3[i] = cpu
+		caller.eightbitparam4[i] = memory
 
 		if i <= 0x31 && i%16 == 1 {
 			caller.eightBitFuncArray[i] = LD16b
@@ -129,6 +134,11 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 			caller.eightbitparam1[i] = uint16(memory[cpu.registerBC])
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
 			break
+		case 0x08:
+			caller.eightBitFuncArray[i] = LDr
+			caller.eightbitparam1[i] = cpu.registerSP
+			caller.eightbitparam2[i] = immediateValue
+			break
 		case 0x0A:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
@@ -186,15 +196,20 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = uint16(memory[0xFF00+uint16(cpu.registerC)])
 			break
-		case 0xFA:
-			caller.eightBitFuncArray[i] = LDr
-			caller.eightbitparam1[i] = uint16(cpu.registerA)
-			caller.eightbitparam2[i] = uint16(memory[immediateValue])
+		case 0xF8:
+			caller.eightBitFuncArray[i] = LDHL
+			caller.eightbitparam2[i] = cpu.registerSP + immediateValue
+			caller.eightbitparam1[i] = cpu.registerHL
 			break
 		case 0xF9:
 			caller.eightBitFuncArray[i] = LD16b
 			caller.eightbitparam1[i] = cpu.registerSP
 			caller.eightbitparam2[i] = cpu.registerHL
+			break
+		case 0xFA:
+			caller.eightBitFuncArray[i] = LDr
+			caller.eightbitparam1[i] = uint16(cpu.registerA)
+			caller.eightbitparam2[i] = uint16(memory[immediateValue])
 			break
 		}
 
@@ -202,6 +217,8 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 	return caller
 }
 
+// Makes a new caller and initializes it with the
+// proper functions and params at the proper opcode location
 func NewCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_function_caller {
 	caller := initCaller(cpu, memory, immediateValue)
 	return caller
@@ -209,27 +226,49 @@ func NewCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_function
 
 // LDn loads a value from a register nn into another register
 // or immediate value n
-// param: nn, a register to have a value written to
-// 		  n, a register, memory addres, or an 8 bit immediate value to have a value read to
-func LDn(nn uint16, n uint16) {
+// params:
+// 			nn, a register to have a value written to
+// 			n, a register, memory addres, or an 8 bit immediate value to have a value read
+func LDn(nn uint16, n uint16, cpu *CPU, memory []uint8) {
 	nn = n
 }
 
 // LDr loads a value from a register r2 into another register
 // or immediate value r1
-// param: r2, a register to have a value read from
-// 		  r1, a register or immediate value to have a value written to
-func LDr(r1 uint16, r2 uint16) {
+// params:
+// 			r2, a register to write to
+// 			r1, a register, memory addres, or an 8 bit immediate value being read from
+func LDr(r1 uint16, r2 uint16, cpu *CPU, memory []uint8) {
 	r1 = r2
 }
 
-func LD16b(r uint16, value uint16) {
+// LD16b is like the other LD finctions but intended only for use with 16 bit
+// values this is the reason every other function has the 16 bit params
+// params:
+// 			r, a register to write to
+// 			value, a paired register or an 16 bit immediate value being read from
+func LD16b(r uint16, value uint16, cpu *CPU, memory []uint8) {
 	r = value
 }
 
+// LDHL was made for the spcific case where the flag register needs to be edited
+func LDHL(r uint16, value uint16, cpu *CPU, memory []uint8) {
+	r = value
+	cpu.registerF = cpu.registerF & 0b00110000
+}
+
+func PUSH(r uint16, value uint16, cpu *CPU, memory []uint8) {
+	r -= 2
+	Write16bToMemory(cpu.registerSP, value, memory)
+}
+
 // Takes in an opcode and runs the function with appropriate params associated with that code
-// param: an opcode that can be 8 or 16 bit value (16 bit has to begin at 0xCB00 and ends at 0xCBFF)
-// and might be followed by an 8 or 16 bit immediate value
+//
+// params:
+// 			opcode, can be 8 or 16 bit value 16 bit has to begin at 0xCB00 and ends at 0xCBFF
+// 			and might be followed by an 8 or 16 bit immediate value
+// 			cpu, where the registers are read from and written to
+// 			memory, An arrray of 8 bit integers that is 0x10000 addresses long
 func ReadOpcode(opcode uint32, cpu *CPU, memory []uint8) {
 
 	var immediateValue uint16
@@ -255,7 +294,9 @@ func ReadOpcode(opcode uint32, cpu *CPU, memory []uint8) {
 		function := caller.eightBitFuncArray[opcode]
 		first := caller.eightbitparam1[opcode]
 		second := caller.eightbitparam2[opcode]
-		function(first, second)
+		third := caller.eightbitparam3[opcode]
+		fourth := caller.eightbitparam4[opcode]
+		function(first, second, third, fourth)
 	}
 
 }
