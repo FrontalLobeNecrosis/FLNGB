@@ -115,7 +115,16 @@ func GetMemoryAndDeincrement(memory []uint8, address *uint16) uint8 {
 }
 
 func Write16bToMemory(r uint16, value uint16, memory []uint8) {
-	memory[r] = uint8(value & 0xFF)
-	r += 1
 	memory[r] = uint8((value & 0xFF00) >> 8)
+	r--
+	memory[r] = uint8(value & 0xFF)
+}
+
+func Read16bFromMemory(r1 uint16, r2 uint16, memory []uint8) {
+	var value uint16
+	value = uint16(memory[r1])
+	r1++
+	value += uint16(memory[r1]) << 8
+	r1++
+	r2 = value
 }
