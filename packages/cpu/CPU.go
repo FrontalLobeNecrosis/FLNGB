@@ -113,3 +113,9 @@ func GetMemoryAndDeincrement(memory []uint8, address *uint16) uint8 {
 	*address--
 	return memory[*address]
 }
+
+func Write16bToMemory(r uint16, value uint16, memory []uint8) {
+	memory[r] = uint8(value & 0xFF)
+	r += 1
+	memory[r] = uint8((value & 0xFF00) >> 8)
+}
