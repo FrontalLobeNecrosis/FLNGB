@@ -160,7 +160,48 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 				caller.eightbitparam2[i] = uint16(cpu.registerA)
 				break
 			}
+		}
 
+		if i >= 0x80 && i <= 0x8F || i == 0xC6 || i == 0xCE {
+			caller.eightBitFuncArray[i] = ADD
+			caller.eightbitparam1[i] = uint16(cpu.registerA)
+
+			var carry uint8 = 0
+			if i > 0x87 || i == 0xCE {
+				carry = cpu.registerF & 0b00010000
+			}
+			remainder := i % 8
+
+			switch remainder {
+			case 0:
+				caller.eightbitparam2[i] = uint16(cpu.registerB + carry)
+				break
+			case 1:
+				caller.eightbitparam2[i] = uint16(cpu.registerC + carry)
+				break
+			case 2:
+				caller.eightbitparam2[i] = uint16(cpu.registerD + carry)
+				break
+			case 3:
+				caller.eightbitparam2[i] = uint16(cpu.registerE + carry)
+				break
+			case 4:
+				caller.eightbitparam2[i] = uint16(cpu.registerH + carry)
+				break
+			case 5:
+				caller.eightbitparam2[i] = uint16(cpu.registerL + carry)
+				break
+			case 6:
+				if i <= 0xCE {
+					caller.eightbitparam2[i] = immediateValue + uint16(carry)
+				} else {
+					caller.eightbitparam2[i] = uint16(memory[cpu.registerHL] + carry)
+				}
+				break
+			case 7:
+				caller.eightbitparam2[i] = uint16(cpu.registerA + carry)
+				break
+			}
 		}
 
 		switch i {
