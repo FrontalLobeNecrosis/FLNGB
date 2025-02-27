@@ -292,13 +292,36 @@ func LDHL(r uint16, value uint16, cpu *CPU, memory []uint8) {
 	cpu.registerF = cpu.registerF & 0b00110000
 }
 
+// Pushes 16 bits worth of values onto the memory stack
 func PUSH(r uint16, value uint16, cpu *CPU, memory []uint8) {
 	r--
 	Write16bToMemory(r, value, memory)
 }
 
+// Pops 16 bit worth of values off of the memory stack
 func POP(r1 uint16, r2 uint16, cpu *CPU, memory []uint8) {
 	Read16bFromMemory(r1, r2, memory)
+}
+
+func ADD(r uint16, value uint16, cpu *CPU, memory []uint8) {
+	temp := value
+	if value > 0xFF {
+		temp = uint16(memory[value])
+	}
+	result := r + temp
+	if result&0xFF == 0 {
+		cpu.registerF = cpu.registerF | 0b10000000
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		cpu.registerF -= 0b01000000
+	}
+	if (r&0xF)+(temp&0xF) > 0xF {
+		cpu.registerF = cpu.registerF | 0b00100000
+	}
+	if (result & 0xFF00) > 0 {
+		cpu.registerF = cpu.registerF | 0b00010000
+	}
+	r = result & 0xFF
 }
 
 // Takes in an opcode and runs the function with appropriate params associated with that code
