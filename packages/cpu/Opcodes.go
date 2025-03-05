@@ -204,6 +204,7 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 			}
 		}
 
+		// TODO: Find a pattern to replace switch case stack with
 		switch i {
 		case 0x02:
 			caller.eightBitFuncArray[i] = LDr
@@ -265,17 +266,17 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 			break
 		case 0xF0:
 			caller.eightBitFuncArray[i] = LDr
-			caller.eightbitparam2[i] = uint16(cpu.registerA)
 			caller.eightbitparam1[i] = uint16(memory[0xFF00+immediateValue])
+			caller.eightbitparam2[i] = uint16(cpu.registerA)
 		case 0xF2:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = uint16(memory[0xFF00+uint16(cpu.registerC)])
 			break
 		case 0xF8:
-			caller.eightBitFuncArray[i] = LDHL
-			caller.eightbitparam2[i] = cpu.registerSP + immediateValue
+			caller.eightBitFuncArray[i] = LDFlag
 			caller.eightbitparam1[i] = cpu.registerHL
+			caller.eightbitparam2[i] = cpu.registerSP + immediateValue
 			break
 		case 0xF9:
 			caller.eightBitFuncArray[i] = LD16b
@@ -295,6 +296,11 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 
 // Makes a new caller and initializes it with the
 // proper functions and params at the proper opcode location
+//
+// params:
+// 			cpu, a CPU struct containing registers to write to and read from
+// 			memory, an array of 8 bit values with the size of 0xFFFF
+// 			immediateValue, the immediate value included in the opcode, can be 8 or 16 bit
 func NewCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_function_caller {
 	caller := initCaller(cpu, memory, immediateValue)
 	return caller
@@ -302,6 +308,7 @@ func NewCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_function
 
 // LDn loads a value from a register nn into another register
 // or immediate value n
+//
 // params:
 // 			nn, a register to have a value written to
 // 			n, a register, memory addres, or an 8 bit immediate value to have a value read
@@ -311,15 +318,17 @@ func LDn(nn uint16, n uint16, cpu *CPU, memory []uint8) {
 
 // LDr loads a value from a register r2 into another register
 // or immediate value r1
+//
 // params:
-// 			r2, a register to write to
-// 			r1, a register, memory addres, or an 8 bit immediate value being read from
+// 			r1, a register to write to
+// 			r2, a register, memory addres, or an 8 bit immediate value being read from
 func LDr(r1 uint16, r2 uint16, cpu *CPU, memory []uint8) {
 	r1 = r2
 }
 
 // LD16b is like the other LD finctions but intended only for use with 16 bit
-// values this is the reason every other function has the 16 bit params
+// values (like the paired registers) this is the reason every other function has the 16 bit params
+//
 // params:
 // 			r, a register to write to
 // 			value, a paired register or an 16 bit immediate value being read from
@@ -327,23 +336,46 @@ func LD16b(r uint16, value uint16, cpu *CPU, memory []uint8) {
 	r = value
 }
 
-// LDHL was made for the spcific case where the flag register needs to be edited
-func LDHL(r uint16, value uint16, cpu *CPU, memory []uint8) {
+// LDFlag was made for the spcific case where the flag register needs to be edited,
+// this is the reason all functions have the CPU param
+//
+// params:
+// 			r, a register to write to
+// 			value, a paired register or an 16 bit immediate value being read from
+func LDFlag(r uint16, value uint16, cpu *CPU, memory []uint8) {
 	r = value
 	cpu.registerF = cpu.registerF & 0b00110000
 }
 
-// Pushes 16 bits worth of values onto the memory stack
+// Pushes 16 bits worth of values onto the memory stack by SP register
+//
+// params:
+// 			r, SP register (stack pointer)
+// 			value, value to be pushed onto the stack. either paired register or immediate value
+// 			memory, an array of 8 bit values with the size of 0xFFFF, will sotre the pushed value
 func PUSH(r uint16, value uint16, cpu *CPU, memory []uint8) {
 	r--
 	Write16bToMemory(r, value, memory)
 }
 
-// Pops 16 bit worth of values off of the memory stack
+// Pops 16 bit worth of values off of the memory stack by SP register
+//
+// params:
+// 			r1, SP register (stack pointer)
+// 			r2, paired register to push value onto
+// 			memory, an array of 8 bit values with the size of 0xFFFF, will have values poped off it
 func POP(r1 uint16, r2 uint16, cpu *CPU, memory []uint8) {
 	Read16bFromMemory(r1, r2, memory)
 }
 
+// Adds a value to the arithmitic registry (register A)
+//
+// params:
+// 			r, arithmitic register (register A)
+// 			value, a value to be added to arithmitic register, can be value from memory,
+// 				   other registers, or immediate value
+// 			cpu, CPU struct to edit flag register (register F)
+// 			memory, an array of 8 bit values with the size of 0xFFFF
 func ADD(r uint16, value uint16, cpu *CPU, memory []uint8) {
 	temp := value
 	if value > 0xFF {
