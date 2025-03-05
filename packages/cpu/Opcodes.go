@@ -306,12 +306,11 @@ func NewCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_function
 	return caller
 }
 
-// LDn loads a value from a register nn into another register
-// or immediate value n
+// LDn loads a value from a register or immediate value, into a register
 //
 // params:
 // 			nn, a register to have a value written to
-// 			n, a register, memory addres, or an 8 bit immediate value to have a value read
+// 			n, a register, memory addres, or an 8 bit immediate value to write from
 func LDn(nn uint16, n uint16, cpu *CPU, memory []uint8) {
 	nn = n
 }
@@ -401,7 +400,7 @@ func ADD(r uint16, value uint16, cpu *CPU, memory []uint8) {
 //
 // params:
 // 			opcode, can be 8 or 16 bit value 16 bit has to begin at 0xCB00 and ends at 0xCBFF
-// 			and might be followed by an 8 or 16 bit immediate value
+// 					and might be followed by an 8 or 16 bit immediate value
 // 			cpu, where the registers are read from and written to
 // 			memory, An arrray of 8 bit integers that is 0x10000 addresses long
 func ReadOpcode(opcode uint32, cpu *CPU, memory []uint8) {
