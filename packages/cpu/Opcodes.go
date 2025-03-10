@@ -1,6 +1,8 @@
 package GBCPU
 
 // This struct is to call functions from an array based on opcode
+// 8 bit function and params array is for 8 bit opcodes
+// 16 bit functions and params are for 16 bit opcodes
 type Opcode_function_caller struct {
 	eightBitFuncArray   [255]func(uint16, uint16, *CPU, []uint8)
 	eightbitparam1      [255]uint16
@@ -162,8 +164,12 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 			}
 		}
 
-		if i >= 0x80 && i <= 0x8F || i == 0xC6 || i == 0xCE {
-			caller.eightBitFuncArray[i] = ADD
+		if i >= 0x80 && i <= 0x9F || i == 0xC6 || i == 0xCE || i == 0xD6 || i == 0xDE {
+			if i <= 0x8F || i == 0xC6 || i == 0xCE {
+				caller.eightBitFuncArray[i] = ADD
+			} else {
+				caller.eightBitFuncArray[i] = SUB
+			}
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 
 			var carry uint8 = 0
@@ -192,7 +198,7 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 				caller.eightbitparam2[i] = uint16(cpu.registerL + carry)
 				break
 			case 6:
-				if i <= 0xCE {
+				if i <= 0xDE {
 					caller.eightbitparam2[i] = immediateValue + uint16(carry)
 				} else {
 					caller.eightbitparam2[i] = uint16(memory[cpu.registerHL] + carry)
@@ -351,7 +357,7 @@ func LDFlag(r uint16, value uint16, cpu *CPU, memory []uint8) {
 // params:
 // 			r, SP register (stack pointer)
 // 			value, value to be pushed onto the stack. either paired register or immediate value
-// 			memory, an array of 8 bit values with the size of 0xFFFF, will sotre the pushed value
+// 			memory, an array of 8 bit values with the size of 0xFFFF, will store the pushed value
 func PUSH(r uint16, value uint16, cpu *CPU, memory []uint8) {
 	r--
 	Write16bToMemory(r, value, memory)
@@ -370,30 +376,59 @@ func POP(r1 uint16, r2 uint16, cpu *CPU, memory []uint8) {
 // Adds a value to the arithmitic registry (register A)
 //
 // params:
-// 			r, arithmitic register (register A)
-// 			value, a value to be added to arithmitic register, can be value from memory,
+// 			A, arithmitic register (register A)
+// 			n, a value to be added to arithmitic register, can be value from memory,
 // 				   other registers, or immediate value
 // 			cpu, CPU struct to edit flag register (register F)
 // 			memory, an array of 8 bit values with the size of 0xFFFF
-func ADD(r uint16, value uint16, cpu *CPU, memory []uint8) {
-	temp := value
-	if value > 0xFF {
-		temp = uint16(memory[value])
+func ADD(A uint16, n uint16, cpu *CPU, memory []uint8) {
+	temp := n
+	if n > 0xFF {
+		temp = uint16(memory[n])
 	}
-	result := r + temp
+	result := A + temp
 	if result&0xFF == 0 {
 		cpu.registerF = cpu.registerF | 0b10000000
 	}
 	if (cpu.registerF & 0b01000000) == 0b01000000 {
-		cpu.registerF -= 0b01000000
+		cpu.registerF = cpu.registerF ^ 0b01000000
 	}
-	if (r&0xF)+(temp&0xF) > 0xF {
+	if (A&0b111)+(temp&0b111) >= 0xF {
 		cpu.registerF = cpu.registerF | 0b00100000
 	}
-	if (result & 0xFF00) > 0 {
+	if (A&0b1111111)+(temp&0b1111111) >= 0xF0 {
 		cpu.registerF = cpu.registerF | 0b00010000
 	}
-	r = result & 0xFF
+	A = result & 0xFF
+}
+
+// Subtracts a value from the arithmitic registry (register A)
+//
+// params:
+// 			A, arithmitic register (register A)
+// 			n, a value to be added to arithmitic register, can be value from memory,
+// 				   other registers, or immediate value
+// 			cpu, CPU struct to edit flag register (register F)
+// 			memory, an array of 8 bit values with the size of 0xFFFF
+func SUB(A uint16, n uint16, cpu *CPU, memory []uint8) {
+	temp := n
+	if n > 0xFF {
+		temp = uint16(memory[n])
+	}
+	result := A - temp
+	if result&0xFF == 0 {
+		cpu.registerF = cpu.registerF | 0b10000000
+	}
+	if (cpu.registerF & 0b01000000) != 0b01000000 {
+		cpu.registerF = cpu.registerF | 0b01000000
+	}
+	if (A&0b111)-(temp&0b111) >= 0 {
+		cpu.registerF = cpu.registerF | 0b00100000
+	}
+	if (A&0b1111111)-(temp&0b1111111) >= 0 {
+		cpu.registerF = cpu.registerF | 0b00010000
+	}
+	A = result & 0xFF
 }
 
 // Takes in an opcode and runs the function with appropriate params associated with that code
