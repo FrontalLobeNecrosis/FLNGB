@@ -130,8 +130,7 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 			} else if i >= 0x68 && i <= 0x6F {
 				caller.eightbitparam1[i] = uint16(cpu.registerL)
 			} else if i >= 0x70 && i <= 0x75 {
-				value := uint16(memory[cpu.registerHL])
-				caller.eightbitparam1[i] = value
+				caller.eightbitparam1[i] = uint16(memory[cpu.registerHL])
 			}
 
 			remainder := i % 8
@@ -164,8 +163,10 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 			}
 		}
 
-		if i >= 0x80 && i <= 0x9F || i == 0xC6 || i == 0xCE || i == 0xD6 || i == 0xDE {
-			if i <= 0x8F || i == 0xC6 || i == 0xCE {
+		if i >= 0x80 && i <= 0xA7 || i == 0xC6 || i == 0xCE || i == 0xD6 || i == 0xDE || i == 0xE6 {
+			if i <= 0xA0 || i == 0xE6 {
+				caller.eightBitFuncArray[i] = AND
+			} else if i <= 0x8F || i == 0xC6 || i == 0xCE {
 				caller.eightBitFuncArray[i] = ADD
 			} else {
 				caller.eightBitFuncArray[i] = SUB
@@ -173,7 +174,7 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 
 			var carry uint8 = 0
-			if i > 0x87 || i == 0xCE {
+			if i > 0x87 && i < 0x90 || i > 0x97 && i < 0xA0 || i == 0xCE || i == 0xDE {
 				carry = cpu.registerF & 0b00010000
 			}
 			remainder := i % 8
@@ -198,7 +199,7 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 				caller.eightbitparam2[i] = uint16(cpu.registerL + carry)
 				break
 			case 6:
-				if i <= 0xDE {
+				if i >= 0xC6 {
 					caller.eightbitparam2[i] = immediateValue + uint16(carry)
 				} else {
 					caller.eightbitparam2[i] = uint16(memory[cpu.registerHL] + carry)
@@ -238,19 +239,23 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 			caller.eightbitparam2[i] = uint16(memory[cpu.registerDE])
 			break
 		case 0x22:
+			// TODO: Fix the way the memory and HL register is accessed and updated
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(GetMemoryAndIncrement(memory, &cpu.registerHL))
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
 		case 0x2A:
+			// TODO: Fix the way the memory and HL register is accessed and updated
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = uint16(GetMemoryAndIncrement(memory, &cpu.registerHL))
 		case 0x32:
+			// TODO: Fix the way the memory and HL register is accessed and updated
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(GetMemoryAndDeincrement(memory, &cpu.registerHL))
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
 			break
 		case 0x3A:
+			// TODO: Fix the way the memory and HL register is accessed and updated
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = uint16(GetMemoryAndDeincrement(memory, &cpu.registerHL))
@@ -402,7 +407,7 @@ func ADD(A uint16, n uint16, cpu *CPU, memory []uint8) {
 	A = result & 0xFF
 }
 
-// Subtracts a value from the arithmitic registry (register A)
+// Subtracts a value from the arithmitic register (register A)
 //
 // params:
 // 			A, arithmitic register (register A)
@@ -427,6 +432,31 @@ func SUB(A uint16, n uint16, cpu *CPU, memory []uint8) {
 	}
 	if (A&0b1111111)-(temp&0b1111111) >= 0 {
 		cpu.registerF = cpu.registerF | 0b00010000
+	}
+	A = result & 0xFF
+}
+
+// Logically and a value with the arithmetic register (register A)
+//
+// params:
+// 			A, arithmitic register (register A)
+// 			n, a value to be added to arithmitic register, can be value from memory,
+// 				   other registers, or immediate value
+// 			cpu, CPU struct to edit flag register (register F)
+// 			memory, an array of 8 bit values with the size of 0xFFFF
+func AND(A uint16, n uint16, cpu *CPU, memory []uint8) {
+	result := A & n
+	if result&0xFF == 0 {
+		cpu.registerF = cpu.registerF | 0b10000000
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		cpu.registerF = cpu.registerF ^ 0b01000000
+	}
+	if (cpu.registerF & 0b00100000) != 0b00100000 {
+		cpu.registerF = cpu.registerF | 0b00100000
+	}
+	if (cpu.registerF & 0b00010000) == 0b00010000 {
+		cpu.registerF = cpu.registerF ^ 0b00010000
 	}
 	A = result & 0xFF
 }
