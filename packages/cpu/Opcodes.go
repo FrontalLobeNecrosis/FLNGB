@@ -39,39 +39,70 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 			}
 		}
 
-		if i <= 0x3E && i%8 == 6 {
-			caller.eightBitFuncArray[i] = LDn
-			caller.eightbitparam2[i] = immediateValue
+		if i <= 0x3E && (i%8 == 6 || i%8 == 4) {
 
-			switch i {
-			case 0x06:
-				caller.eightbitparam1[i] = uint16(cpu.registerB)
-				break
-			case 0x0E:
-				caller.eightbitparam1[i] = uint16(cpu.registerC)
-				break
-			case 0x16:
-				caller.eightbitparam1[i] = uint16(cpu.registerD)
-				break
-			case 0x1E:
-				caller.eightbitparam1[i] = uint16(cpu.registerE)
-				break
-			case 0x26:
-				caller.eightbitparam1[i] = uint16(cpu.registerH)
-				break
-			case 0x2E:
-				caller.eightbitparam1[i] = uint16(cpu.registerL)
-				break
-			case 0x36:
-				caller.eightbitparam1[i] = uint16(memory[cpu.registerHL])
-				break
-			case 0x3E:
-				caller.eightbitparam1[i] = uint16(cpu.registerA)
-				break
+			caller.eightbitparam2[i] = immediateValue
+			remainder := i % 8
+			if remainder == 4 {
+				caller.eightBitFuncArray[i] = INC
+				switch i {
+				case 0x04:
+					caller.eightbitparam1[i] = uint16(cpu.registerB)
+					break
+				case 0x0C:
+					caller.eightbitparam1[i] = uint16(cpu.registerC)
+					break
+				case 0x14:
+					caller.eightbitparam1[i] = uint16(cpu.registerD)
+					break
+				case 0x1C:
+					caller.eightbitparam1[i] = uint16(cpu.registerE)
+					break
+				case 0x24:
+					caller.eightbitparam1[i] = uint16(cpu.registerH)
+					break
+				case 0x2C:
+					caller.eightbitparam1[i] = uint16(cpu.registerL)
+					break
+				case 0x34:
+					caller.eightbitparam1[i] = uint16(memory[cpu.registerHL])
+					break
+				case 0x3C:
+					caller.eightbitparam1[i] = uint16(cpu.registerA)
+					break
+				}
+			} else if remainder == 6 {
+				caller.eightBitFuncArray[i] = LDn
+				switch i {
+				case 0x06:
+					caller.eightbitparam1[i] = uint16(cpu.registerB)
+					break
+				case 0x0E:
+					caller.eightbitparam1[i] = uint16(cpu.registerC)
+					break
+				case 0x16:
+					caller.eightbitparam1[i] = uint16(cpu.registerD)
+					break
+				case 0x1E:
+					caller.eightbitparam1[i] = uint16(cpu.registerE)
+					break
+				case 0x26:
+					caller.eightbitparam1[i] = uint16(cpu.registerH)
+					break
+				case 0x2E:
+					caller.eightbitparam1[i] = uint16(cpu.registerL)
+					break
+				case 0x36:
+					caller.eightbitparam1[i] = uint16(memory[cpu.registerHL])
+					break
+				case 0x3E:
+					caller.eightbitparam1[i] = uint16(cpu.registerA)
+					break
+				}
 			}
 		}
 
-		if (i <= 0xF5) && (i >= 0xC5) && (i%16 == 5) {
+		if (i >= 0xC5) && (i <= 0xF5) && (i%16 == 5) {
 			caller.eightBitFuncArray[i] = PUSH
 			caller.eightbitparam1[i] = cpu.registerSP
 
@@ -91,7 +122,7 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 			}
 		}
 
-		if (i <= 0xF1) && (i >= 0xC1) && (i%16 == 1) {
+		if (i >= 0xC1) && (i <= 0xF1) && (i%16 == 1) {
 			caller.eightBitFuncArray[i] = POP
 			caller.eightbitparam1[i] = cpu.registerSP
 
@@ -544,6 +575,27 @@ func CP(A uint16, n uint16, cpu *CPU, memory []uint8) {
 	if (A&0b1111111)-(temp&0b1111111) >= 0 {
 		cpu.registerF = cpu.registerF | 0b00010000
 	}
+}
+
+// Increments a register or value in memory
+//
+// params:
+// 			n, a non paired register or a spot in memory
+// 			null, not used in this function
+// 			cpu, CPU struct to edit flag register (register F)
+// 			memory, an array of 8 bit values with the size of 0xFFFF
+func INC(n uint16, null uint16, cpu *CPU, memory []uint8) {
+	temp := n + 1
+	if temp&0xFF == 0 {
+		cpu.registerF = cpu.registerF | 0b10000000
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		cpu.registerF = cpu.registerF ^ 0b01000000
+	}
+	if (n&0b111)+(temp&0b111) >= 0xF {
+		cpu.registerF = cpu.registerF | 0b00100000
+	}
+	n++
 }
 
 // Takes in an opcode and runs the function with appropriate params associated with that code
