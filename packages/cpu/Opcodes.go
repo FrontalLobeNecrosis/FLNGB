@@ -295,6 +295,10 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam1[i] = uint16(memory[0xFF00+uint16(cpu.registerC)])
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
 			break
+		case 0xE8:
+			caller.eightBitFuncArray[i] = ADDSP
+			caller.eightbitparam1[i] = uint16(cpu.registerSP)
+			caller.eightbitparam2[i] = uint16(immediateValue)
 		case 0xEA:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(memory[immediateValue])
@@ -453,6 +457,28 @@ func ADD16b(HL uint16, n uint16, cpu *CPU, memory []uint8) {
 	HL = result & 0xFFFF
 }
 
+// Adds an 8 bit signed immediate value to the SP register (Stack Pointer)
+//
+// params:
+// 			SP, SP register (Stack Pointer)
+// 			n, 8 bit signed immediate value
+// 			cpu, CPU struct to edit flag register (register F)
+// 			memory, an array of 8 bit values with the size of 0xFFFF
+func ADDSP(SP uint16, n uint16, cpu *CPU, memory []uint8) {
+	//TODO: Figure out if signed immediate value would
+	// 		subtract from SP if it was negative
+	result := SP + n
+	if cpu.registerF&0b10000000 == 0b10000000 {
+		cpu.registerF = cpu.registerF ^ 0b10000000
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		cpu.registerF = cpu.registerF ^ 0b01000000
+	}
+	// TODO: Figure out what set or reset acoording to operation means
+	// 		 in this context for flag H and C
+	SP = result & 0xFFFF
+}
+
 // Subtracts a value from the arithmitic register (register A)
 //
 // params:
@@ -589,10 +615,10 @@ func CP(A uint16, n uint16, cpu *CPU, memory []uint8) {
 //
 // params:
 // 			n, a non paired register or a spot in memory
-// 			null, not used in this function
+// 			none, not used in this function
 // 			cpu, CPU struct to edit flag register (register F)
 // 			memory, an array of 8 bit values with the size of 0xFFFF
-func INC(n uint16, null uint16, cpu *CPU, memory []uint8) {
+func INC(n uint16, none uint16, cpu *CPU, memory []uint8) {
 	temp := n + 1
 	if temp&0xFF == 0 {
 		cpu.registerF = cpu.registerF | 0b10000000
@@ -610,10 +636,10 @@ func INC(n uint16, null uint16, cpu *CPU, memory []uint8) {
 //
 // params:
 // 			n, a non paired register or a spot in memory
-// 			null, not used in this function
+// 			none, not used in this function
 // 			cpu, CPU struct to edit flag register (register F)
 // 			memory, an array of 8 bit values with the size of 0xFFFF
-func DEC(n uint16, null uint16, cpu *CPU, memory []uint8) {
+func DEC(n uint16, none uint16, cpu *CPU, memory []uint8) {
 	temp := n - 1
 	if temp&0xFF == 0 {
 		cpu.registerF = cpu.registerF | 0b10000000
