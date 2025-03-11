@@ -14,7 +14,7 @@ type Opcode_function_caller struct {
 
 // Function makes an Opcode_function_caller and takes a CPU struct and loades the
 // caller with all the functions and params that will be called by opcodes
-func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_function_caller {
+func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_function_caller {
 	caller := new(Opcode_function_caller)
 
 	for i := 0; i <= 255; i++ {
@@ -318,7 +318,7 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 // 			memory, an array of 8 bit values with the size of 0xFFFF
 // 			immediateValue, the immediate value included in the opcode, can be 8 or 16 bit
 func NewCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_function_caller {
-	caller := initCaller(cpu, memory, immediateValue)
+	caller := CallerLoader(cpu, memory, immediateValue)
 	return caller
 }
 
