@@ -71,6 +71,34 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 					caller.eightbitparam1[i] = uint16(cpu.registerA)
 					break
 				}
+			} else if remainder == 5 {
+				caller.eightBitFuncArray[i] = DEC
+				switch i {
+				case 0x05:
+					caller.eightbitparam1[i] = uint16(cpu.registerB)
+					break
+				case 0x0D:
+					caller.eightbitparam1[i] = uint16(cpu.registerC)
+					break
+				case 0x15:
+					caller.eightbitparam1[i] = uint16(cpu.registerD)
+					break
+				case 0x1D:
+					caller.eightbitparam1[i] = uint16(cpu.registerE)
+					break
+				case 0x25:
+					caller.eightbitparam1[i] = uint16(cpu.registerH)
+					break
+				case 0x2D:
+					caller.eightbitparam1[i] = uint16(cpu.registerL)
+					break
+				case 0x35:
+					caller.eightbitparam1[i] = uint16(memory[cpu.registerHL])
+					break
+				case 0x3D:
+					caller.eightbitparam1[i] = uint16(cpu.registerA)
+					break
+				}
 			} else if remainder == 6 {
 				caller.eightBitFuncArray[i] = LDn
 				switch i {
@@ -596,6 +624,27 @@ func INC(n uint16, null uint16, cpu *CPU, memory []uint8) {
 		cpu.registerF = cpu.registerF | 0b00100000
 	}
 	n++
+}
+
+// Deincrements a register or value in memory
+//
+// params:
+// 			n, a non paired register or a spot in memory
+// 			null, not used in this function
+// 			cpu, CPU struct to edit flag register (register F)
+// 			memory, an array of 8 bit values with the size of 0xFFFF
+func DEC(n uint16, null uint16, cpu *CPU, memory []uint8) {
+	temp := n - 1
+	if temp&0xFF == 0 {
+		cpu.registerF = cpu.registerF | 0b10000000
+	}
+	if (cpu.registerF & 0b01000000) != 0b01000000 {
+		cpu.registerF = cpu.registerF | 0b01000000
+	}
+	if (n&0b111)-(temp&0b111) >= 0xF {
+		cpu.registerF = cpu.registerF | 0b00100000
+	}
+	n--
 }
 
 // Takes in an opcode and runs the function with appropriate params associated with that code
