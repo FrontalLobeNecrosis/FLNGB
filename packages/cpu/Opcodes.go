@@ -19,42 +19,44 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 
 	for i := 0; i <= 255; i++ {
 
-		if i <= 0x39 && (i%16 == 1 || i%16 == 9) {
+		if i <= 0x3B && (i%16 == 1 || i%16 == 9 || i%16 == 3 || i%16 == 11) {
 			remainder := i % 16
+			if i <= 0xF {
+				caller.eightbitparam1[i] = cpu.registerBC
+			} else if i <= 0x1F {
+				caller.eightbitparam1[i] = cpu.registerDE
+			} else if i <= 0x2F {
+				caller.eightbitparam1[i] = cpu.registerHL
+			} else if i <= 0x3F {
+				caller.eightbitparam1[i] = cpu.registerSP
+			}
+
 			if remainder == 1 {
 				caller.eightBitFuncArray[i] = LD16b
 				caller.eightbitparam2[i] = immediateValue
-				switch i {
-				case 0x01:
-					caller.eightbitparam1[i] = cpu.registerBC
-					break
-				case 0x11:
-					caller.eightbitparam1[i] = cpu.registerDE
-					break
-				case 0x21:
-					caller.eightbitparam1[i] = cpu.registerHL
-					break
-				case 0x31:
-					caller.eightbitparam1[i] = cpu.registerSP
-					break
-				}
+			} else if remainder == 3 {
+				caller.eightBitFuncArray[i] = INC16b
+				caller.eightbitparam2[i] = cpu.registerHL
 			} else if remainder == 9 {
 				caller.eightBitFuncArray[i] = ADD16b
 				caller.eightbitparam1[i] = cpu.registerHL
 				switch i {
 				case 0x09:
-					caller.eightbitparam1[i] = cpu.registerBC
+					caller.eightbitparam2[i] = cpu.registerBC
 					break
 				case 0x19:
-					caller.eightbitparam1[i] = cpu.registerDE
+					caller.eightbitparam2[i] = cpu.registerDE
 					break
 				case 0x29:
-					caller.eightbitparam1[i] = cpu.registerHL
+					caller.eightbitparam2[i] = cpu.registerHL
 					break
 				case 0x39:
-					caller.eightbitparam1[i] = cpu.registerSP
+					caller.eightbitparam2[i] = cpu.registerSP
 					break
 				}
+			} else if remainder == 11 {
+				caller.eightBitFuncArray[i] = DEC16b
+				caller.eightbitparam2[i] = cpu.registerHL
 			}
 
 		}
@@ -611,7 +613,7 @@ func CP(A uint16, n uint16, cpu *CPU, memory []uint8) {
 	}
 }
 
-// Increments a register or value in memory
+// Increments a non-paired register or value in memory
 //
 // params:
 // 			n, a non paired register or a spot in memory
@@ -632,7 +634,18 @@ func INC(n uint16, none uint16, cpu *CPU, memory []uint8) {
 	n++
 }
 
-// Deincrements a register or value in memory
+// Increments a 16 bit register
+//
+// params:
+// 			n, a 16 bit register
+// 			none, not used in this function
+// 			cpu, CPU struct to edit flag register (register F)
+// 			memory, an array of 8 bit values with the size of 0xFFFF
+func INC16b(nn uint16, none uint16, cpu *CPU, memory []uint8) {
+	nn++
+}
+
+// Deincrements a non paired register or value in memory
 //
 // params:
 // 			n, a non paired register or a spot in memory
@@ -651,6 +664,17 @@ func DEC(n uint16, none uint16, cpu *CPU, memory []uint8) {
 		cpu.registerF = cpu.registerF | 0b00100000
 	}
 	n--
+}
+
+// Deincrements a 16 bit register
+//
+// params:
+// 			n, a 16 bit register
+// 			none, not used in this function
+// 			cpu, CPU struct to edit flag register (register F)
+// 			memory, an array of 8 bit values with the size of 0xFFFF
+func DEC16b(nn uint16, none uint16, cpu *CPU, memory []uint8) {
+	nn--
 }
 
 // Takes in an opcode and runs the function with appropriate params associated with that code
