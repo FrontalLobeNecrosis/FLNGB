@@ -428,7 +428,7 @@ func SUB(A uint16, n uint16, cpu *CPU, memory []uint8) {
 		temp = uint16(memory[n])
 	}
 	result := A - temp
-	if result&0xFF == 0 {
+	if A == temp {
 		cpu.registerF = cpu.registerF | 0b10000000
 	}
 	if (cpu.registerF & 0b01000000) != 0b01000000 {
@@ -516,6 +516,34 @@ func XOR(A uint16, n uint16, cpu *CPU, memory []uint8) {
 		cpu.registerF = cpu.registerF ^ 0b00010000
 	}
 	A = result & 0xFF
+}
+
+// Compares a value with the arithmitic register (register A), importantly this will not
+// be entered into register A instead the results are discarded otherwise this is the same as SUB
+//
+// params:
+// 			A, arithmitic register (register A)
+// 			n, a value to be added to arithmitic register, can be value from memory,
+// 				   other registers, or immediate value
+// 			cpu, CPU struct to edit flag register (register F)
+// 			memory, an array of 8 bit values with the size of 0xFFFF
+func CP(A uint16, n uint16, cpu *CPU, memory []uint8) {
+	temp := n
+	if n > 0xFF {
+		temp = uint16(memory[n])
+	}
+	if A == temp {
+		cpu.registerF = cpu.registerF | 0b10000000
+	}
+	if (cpu.registerF & 0b01000000) != 0b01000000 {
+		cpu.registerF = cpu.registerF | 0b01000000
+	}
+	if (A&0b111)-(temp&0b111) >= 0 {
+		cpu.registerF = cpu.registerF | 0b00100000
+	}
+	if (A&0b1111111)-(temp&0b1111111) >= 0 {
+		cpu.registerF = cpu.registerF | 0b00010000
+	}
 }
 
 // Takes in an opcode and runs the function with appropriate params associated with that code
