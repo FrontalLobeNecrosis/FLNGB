@@ -7,7 +7,7 @@ type Opcode_function_caller struct {
 	eightBitFuncArray   [255]func(uint16, uint16, *CPU, []uint8)
 	eightbitparam1      [255]uint16
 	eightbitparam2      [255]uint16
-	sixteenBitFuncArray [255]func(uint16, uint16)
+	sixteenBitFuncArray [255]func(uint16, uint16, *CPU)
 	sixteenbitparam1    [255]uint16
 	sixteenbitparam2    [255]uint16
 }
@@ -20,7 +20,7 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 	for i := 0; i <= 255; i++ {
 
 		if i <= 0x3B && (i%16 == 1 || i%16 == 9 || i%16 == 3 || i%16 == 11) {
-			remainder := i % 16
+
 			if i <= 0xF {
 				caller.eightbitparam1[i] = cpu.registerBC
 			} else if i <= 0x1F {
@@ -31,6 +31,7 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 				caller.eightbitparam1[i] = cpu.registerSP
 			}
 
+			remainder := i % 16
 			if remainder == 1 {
 				caller.eightBitFuncArray[i] = LD16b
 				caller.eightbitparam2[i] = immediateValue
@@ -54,7 +55,7 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 					caller.eightbitparam2[i] = cpu.registerSP
 					break
 				}
-			} else if remainder == 11 {
+			} else if remainder == 0xB {
 				caller.eightBitFuncArray[i] = DEC16b
 				caller.eightbitparam2[i] = cpu.registerHL
 			}
@@ -62,7 +63,7 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 		}
 
 		if i <= 0x3E && (i%8 == 6 || i%8 == 4) {
-
+			remainder := i % 8
 			caller.eightbitparam2[i] = immediateValue
 			if i <= 0x8 {
 				caller.eightbitparam1[i] = uint16(cpu.registerB)
@@ -78,10 +79,38 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 				caller.eightbitparam1[i] = uint16(cpu.registerL)
 			} else if i <= 0x38 {
 				caller.eightbitparam1[i] = uint16(memory[cpu.registerHL])
+				caller.sixteenBitFuncArray[i] = SWAP
+				caller.sixteenbitparam2[i] = 0
+				switch remainder {
+				case 0:
+					caller.sixteenbitparam1[i] = uint16(cpu.registerB)
+					break
+				case 1:
+					caller.sixteenbitparam1[i] = uint16(cpu.registerC)
+					break
+				case 2:
+					caller.sixteenbitparam1[i] = uint16(cpu.registerD)
+					break
+				case 3:
+					caller.sixteenbitparam1[i] = uint16(cpu.registerE)
+					break
+				case 4:
+					caller.sixteenbitparam1[i] = uint16(cpu.registerH)
+					break
+				case 5:
+					caller.sixteenbitparam1[i] = uint16(cpu.registerL)
+					break
+				case 6:
+					caller.sixteenbitparam1[i] = uint16(memory[cpu.registerHL])
+					break
+				case 7:
+					caller.sixteenbitparam1[i] = uint16(cpu.registerA)
+					break
+				}
 			} else {
 				caller.eightbitparam1[i] = uint16(cpu.registerA)
 			}
-			remainder := i % 8
+
 			if remainder == 4 {
 				caller.eightBitFuncArray[i] = INC
 			} else if remainder == 5 {
@@ -677,6 +706,32 @@ func DEC16b(nn uint16, none uint16, cpu *CPU, memory []uint8) {
 	nn--
 }
 
+// Swaps the lower and upper bits of n
+//
+// params:
+// 			n, a non paired register or spot in memory
+// 			none, not used in this function
+// 			cpu, CPU struct to edit flag register (register F)
+func SWAP(n uint16, none uint16, cpu *CPU) {
+	lower := n & 0xF
+	upper := n & 0xF0
+	lower = lower << 4
+	upper = upper >> 4
+	n = lower | upper
+	if n == 0 {
+		cpu.registerF = cpu.registerF | 0b10000000
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		cpu.registerF = cpu.registerF ^ 0b01000000
+	}
+	if (cpu.registerF & 0b00100000) == 0b00100000 {
+		cpu.registerF = cpu.registerF ^ 0b00100000
+	}
+	if (cpu.registerF & 0b00010000) == 0b00010000 {
+		cpu.registerF = cpu.registerF ^ 0b00010000
+	}
+}
+
 // Takes in an opcode and runs the function with appropriate params associated with that code
 //
 // params:
@@ -704,7 +759,7 @@ func ReadOpcode(opcode uint32, cpu *CPU, memory []uint8) {
 		function := caller.sixteenBitFuncArray[opcode-0xCB00]
 		first := caller.sixteenbitparam1[opcode-0xCB00]
 		second := caller.sixteenbitparam2[opcode-0xCB00]
-		function(first, second)
+		function(first, second, cpu)
 	} else {
 		function := caller.eightBitFuncArray[opcode]
 		first := caller.eightbitparam1[opcode]
