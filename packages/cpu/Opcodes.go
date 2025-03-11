@@ -163,8 +163,15 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 			}
 		}
 
-		if i >= 0x80 && i <= 0xA7 || i == 0xC6 || i == 0xCE || i == 0xD6 || i == 0xDE || i == 0xE6 {
-			if i <= 0xA0 || i == 0xE6 {
+		if i >= 0x80 && i <= 0xA7 || i == 0xC6 || i == 0xCE || i == 0xD6 ||
+			i == 0xDE || i == 0xE6 || i == 0xEE || i == 0xF6 || i == 0xFE {
+			if i <= 0xB8 || i == 0xFE {
+				caller.eightBitFuncArray[i] = CP
+			} else if i <= 0xB0 || i == 0xF6 {
+				caller.eightBitFuncArray[i] = OR
+			} else if i <= 0xA8 || i == 0xEE {
+				caller.eightBitFuncArray[i] = XOR
+			} else if i <= 0xA0 || i == 0xE6 {
 				caller.eightBitFuncArray[i] = AND
 			} else if i <= 0x8F || i == 0xC6 || i == 0xCE {
 				caller.eightBitFuncArray[i] = ADD
@@ -454,6 +461,56 @@ func AND(A uint16, n uint16, cpu *CPU, memory []uint8) {
 	}
 	if (cpu.registerF & 0b00100000) != 0b00100000 {
 		cpu.registerF = cpu.registerF | 0b00100000
+	}
+	if (cpu.registerF & 0b00010000) == 0b00010000 {
+		cpu.registerF = cpu.registerF ^ 0b00010000
+	}
+	A = result & 0xFF
+}
+
+// Logically or a value with the arithmetic register (register A)
+//
+// params:
+// 			A, arithmitic register (register A)
+// 			n, a value to be added to arithmitic register, can be value from memory,
+// 				   other registers, or immediate value
+// 			cpu, CPU struct to edit flag register (register F)
+// 			memory, an array of 8 bit values with the size of 0xFFFF
+func OR(A uint16, n uint16, cpu *CPU, memory []uint8) {
+	result := A | n
+	if result&0xFF == 0 {
+		cpu.registerF = cpu.registerF | 0b10000000
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		cpu.registerF = cpu.registerF ^ 0b01000000
+	}
+	if (cpu.registerF & 0b00100000) == 0b00100000 {
+		cpu.registerF = cpu.registerF ^ 0b00100000
+	}
+	if (cpu.registerF & 0b00010000) == 0b00010000 {
+		cpu.registerF = cpu.registerF ^ 0b00010000
+	}
+	A = result & 0xFF
+}
+
+// Logically xor a value with the arithmetic register (register A)
+//
+// params:
+// 			A, arithmitic register (register A)
+// 			n, a value to be added to arithmitic register, can be value from memory,
+// 				   other registers, or immediate value
+// 			cpu, CPU struct to edit flag register (register F)
+// 			memory, an array of 8 bit values with the size of 0xFFFF
+func XOR(A uint16, n uint16, cpu *CPU, memory []uint8) {
+	result := A ^ n
+	if result&0xFF == 0 {
+		cpu.registerF = cpu.registerF | 0b10000000
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		cpu.registerF = cpu.registerF ^ 0b01000000
+	}
+	if (cpu.registerF & 0b00100000) == 0b00100000 {
+		cpu.registerF = cpu.registerF ^ 0b00100000
 	}
 	if (cpu.registerF & 0b00010000) == 0b00010000 {
 		cpu.registerF = cpu.registerF ^ 0b00010000
