@@ -42,91 +42,30 @@ func initCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_functio
 		if i <= 0x3E && (i%8 == 6 || i%8 == 4) {
 
 			caller.eightbitparam2[i] = immediateValue
+			if i <= 0x8 {
+				caller.eightbitparam1[i] = uint16(cpu.registerB)
+			} else if i <= 0xF {
+				caller.eightbitparam1[i] = uint16(cpu.registerC)
+			} else if i <= 0x18 {
+				caller.eightbitparam1[i] = uint16(cpu.registerD)
+			} else if i <= 0x1F {
+				caller.eightbitparam1[i] = uint16(cpu.registerE)
+			} else if i <= 0x28 {
+				caller.eightbitparam1[i] = uint16(cpu.registerH)
+			} else if i <= 0x2F {
+				caller.eightbitparam1[i] = uint16(cpu.registerL)
+			} else if i <= 0x38 {
+				caller.eightbitparam1[i] = uint16(memory[cpu.registerHL])
+			} else {
+				caller.eightbitparam1[i] = uint16(cpu.registerA)
+			}
 			remainder := i % 8
 			if remainder == 4 {
 				caller.eightBitFuncArray[i] = INC
-				switch i {
-				case 0x04:
-					caller.eightbitparam1[i] = uint16(cpu.registerB)
-					break
-				case 0x0C:
-					caller.eightbitparam1[i] = uint16(cpu.registerC)
-					break
-				case 0x14:
-					caller.eightbitparam1[i] = uint16(cpu.registerD)
-					break
-				case 0x1C:
-					caller.eightbitparam1[i] = uint16(cpu.registerE)
-					break
-				case 0x24:
-					caller.eightbitparam1[i] = uint16(cpu.registerH)
-					break
-				case 0x2C:
-					caller.eightbitparam1[i] = uint16(cpu.registerL)
-					break
-				case 0x34:
-					caller.eightbitparam1[i] = uint16(memory[cpu.registerHL])
-					break
-				case 0x3C:
-					caller.eightbitparam1[i] = uint16(cpu.registerA)
-					break
-				}
 			} else if remainder == 5 {
 				caller.eightBitFuncArray[i] = DEC
-				switch i {
-				case 0x05:
-					caller.eightbitparam1[i] = uint16(cpu.registerB)
-					break
-				case 0x0D:
-					caller.eightbitparam1[i] = uint16(cpu.registerC)
-					break
-				case 0x15:
-					caller.eightbitparam1[i] = uint16(cpu.registerD)
-					break
-				case 0x1D:
-					caller.eightbitparam1[i] = uint16(cpu.registerE)
-					break
-				case 0x25:
-					caller.eightbitparam1[i] = uint16(cpu.registerH)
-					break
-				case 0x2D:
-					caller.eightbitparam1[i] = uint16(cpu.registerL)
-					break
-				case 0x35:
-					caller.eightbitparam1[i] = uint16(memory[cpu.registerHL])
-					break
-				case 0x3D:
-					caller.eightbitparam1[i] = uint16(cpu.registerA)
-					break
-				}
 			} else if remainder == 6 {
 				caller.eightBitFuncArray[i] = LDn
-				switch i {
-				case 0x06:
-					caller.eightbitparam1[i] = uint16(cpu.registerB)
-					break
-				case 0x0E:
-					caller.eightbitparam1[i] = uint16(cpu.registerC)
-					break
-				case 0x16:
-					caller.eightbitparam1[i] = uint16(cpu.registerD)
-					break
-				case 0x1E:
-					caller.eightbitparam1[i] = uint16(cpu.registerE)
-					break
-				case 0x26:
-					caller.eightbitparam1[i] = uint16(cpu.registerH)
-					break
-				case 0x2E:
-					caller.eightbitparam1[i] = uint16(cpu.registerL)
-					break
-				case 0x36:
-					caller.eightbitparam1[i] = uint16(memory[cpu.registerHL])
-					break
-				case 0x3E:
-					caller.eightbitparam1[i] = uint16(cpu.registerA)
-					break
-				}
 			}
 		}
 
@@ -641,7 +580,7 @@ func DEC(n uint16, null uint16, cpu *CPU, memory []uint8) {
 	if (cpu.registerF & 0b01000000) != 0b01000000 {
 		cpu.registerF = cpu.registerF | 0b01000000
 	}
-	if (n&0b111)-(temp&0b111) >= 0xF {
+	if (n&0b111)-(temp&0b111) >= 0 {
 		cpu.registerF = cpu.registerF | 0b00100000
 	}
 	n--
