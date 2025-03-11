@@ -19,24 +19,44 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 
 	for i := 0; i <= 255; i++ {
 
-		if i <= 0x31 && i%16 == 1 {
-			caller.eightBitFuncArray[i] = LD16b
-			caller.eightbitparam2[i] = immediateValue
-
-			switch i {
-			case 0x01:
-				caller.eightbitparam1[i] = cpu.registerBC
-				break
-			case 0x11:
-				caller.eightbitparam1[i] = cpu.registerDE
-				break
-			case 0x21:
+		if i <= 0x39 && (i%16 == 1 || i%16 == 9) {
+			remainder := i % 16
+			if remainder == 1 {
+				caller.eightBitFuncArray[i] = LD16b
+				caller.eightbitparam2[i] = immediateValue
+				switch i {
+				case 0x01:
+					caller.eightbitparam1[i] = cpu.registerBC
+					break
+				case 0x11:
+					caller.eightbitparam1[i] = cpu.registerDE
+					break
+				case 0x21:
+					caller.eightbitparam1[i] = cpu.registerHL
+					break
+				case 0x31:
+					caller.eightbitparam1[i] = cpu.registerSP
+					break
+				}
+			} else if remainder == 9 {
+				caller.eightBitFuncArray[i] = ADD16b
 				caller.eightbitparam1[i] = cpu.registerHL
-				break
-			case 0x31:
-				caller.eightbitparam1[i] = cpu.registerSP
-				break
+				switch i {
+				case 0x09:
+					caller.eightbitparam1[i] = cpu.registerBC
+					break
+				case 0x19:
+					caller.eightbitparam1[i] = cpu.registerDE
+					break
+				case 0x29:
+					caller.eightbitparam1[i] = cpu.registerHL
+					break
+				case 0x39:
+					caller.eightbitparam1[i] = cpu.registerSP
+					break
+				}
 			}
+
 		}
 
 		if i <= 0x3E && (i%8 == 6 || i%8 == 4) {
@@ -403,13 +423,34 @@ func ADD(A uint16, n uint16, cpu *CPU, memory []uint8) {
 	if (cpu.registerF & 0b01000000) == 0b01000000 {
 		cpu.registerF = cpu.registerF ^ 0b01000000
 	}
-	if (A&0b111)+(temp&0b111) >= 0xF {
+	if (A&0b111)+(temp&0b111) >= 0b1000 {
 		cpu.registerF = cpu.registerF | 0b00100000
 	}
-	if (A&0b1111111)+(temp&0b1111111) >= 0xF0 {
+	if (A&0b1111111)+(temp&0b1111111) >= 0b10000000 {
 		cpu.registerF = cpu.registerF | 0b00010000
 	}
 	A = result & 0xFF
+}
+
+// Adds a value in a paired register to paired register HL
+//
+// params:
+// 			HL, paired register HL
+// 			n, any paired register
+// 			cpu, CPU struct to edit flag register (register F)
+// 			memory, an array of 8 bit values with the size of 0xFFFF
+func ADD16b(HL uint16, n uint16, cpu *CPU, memory []uint8) {
+	result := HL + n
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		cpu.registerF = cpu.registerF ^ 0b01000000
+	}
+	if (HL&0b11111111111)+(n&0b11111111111) >= 0b100000000000 {
+		cpu.registerF = cpu.registerF | 0b00100000
+	}
+	if (HL&0b111111111111111)+(n&0b111111111111111) >= 0b1000000000000000 {
+		cpu.registerF = cpu.registerF | 0b00010000
+	}
+	HL = result & 0xFFFF
 }
 
 // Subtracts a value from the arithmitic register (register A)
@@ -559,7 +600,7 @@ func INC(n uint16, null uint16, cpu *CPU, memory []uint8) {
 	if (cpu.registerF & 0b01000000) == 0b01000000 {
 		cpu.registerF = cpu.registerF ^ 0b01000000
 	}
-	if (n&0b111)+(temp&0b111) >= 0xF {
+	if (n&0b111)+(temp&0b111) >= 0b1000 {
 		cpu.registerF = cpu.registerF | 0b00100000
 	}
 	n++
