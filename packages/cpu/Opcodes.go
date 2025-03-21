@@ -324,6 +324,11 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = uint16(GetMemoryAndDeincrement(memory, &cpu.registerHL))
 			break
+		case 0x3F:
+			caller.eightBitFuncArray[i] = CCF
+			caller.eightbitparam1[i] = immediateValue
+			caller.eightbitparam2[i] = immediateValue
+			break
 		case 0xE0:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(memory[0xFF00+immediateValue])
@@ -742,7 +747,7 @@ func SWAP(n uint16, none uint16, cpu *CPU) {
 
 // TODO: implement DAA function
 
-// Flips every bit in the arithemtic register (registerA)
+// Compliments/flips every bit in the arithemtic register (registerA)
 //
 // params:
 // 			n, registerA
@@ -751,12 +756,31 @@ func SWAP(n uint16, none uint16, cpu *CPU) {
 // 			memory, an array of 8 bit values with the size of 0x10000
 func CPL(n uint16, none uint16, cpu *CPU, memory []uint8) {
 	n = n ^ 0b11111111
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		cpu.registerF = cpu.registerF ^ 0b01000000
+	}
+	if (cpu.registerF & 0b00100000) == 0b00100000 {
+		cpu.registerF = cpu.registerF ^ 0b00100000
+	}
+	cpu.cycles += 4
+}
+
+// Compliments/flips the carry flag in the flag register (registerF)
+//
+// params:
+// 			none1, not used in this function
+// 			none2, not used in this function
+// 			cpu, CPU struct to edit flag register (register F)
+// 			memory, an array of 8 bit values with the size of 0x10000
+func CCF(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
+	cpu.registerF = cpu.registerF ^ 0b00010000
 	if (cpu.registerF & 0b01000000) != 0b01000000 {
 		cpu.registerF = cpu.registerF | 0b01000000
 	}
 	if (cpu.registerF & 0b00100000) != 0b00100000 {
 		cpu.registerF = cpu.registerF | 0b00100000
 	}
+	cpu.cycles += 4
 }
 
 // Takes in an opcode and runs the function with appropriate params associated with that code
