@@ -4,6 +4,7 @@ package GBCPU
 // 8 bit function and params array is for 8 bit opcodes
 // 16 bit functions and params are for 16 bit opcodes
 type Opcode_function_caller struct {
+	// TODO: Figure out if these need to hold pointers
 	eightBitFuncArray   [255]func(uint16, uint16, *CPU, []uint8)
 	eightbitparam1      [255]uint16
 	eightbitparam2      [255]uint16
@@ -680,7 +681,7 @@ func INC16b(nn uint16, none uint16, cpu *CPU, memory []uint8) {
 // 			n, a non paired register or a spot in memory
 // 			none, not used in this function
 // 			cpu, CPU struct to edit flag register (register F)
-// 			memory, an array of 8 bit values with the size of 0xFFFF
+// 			memory, an array of 8 bit values with the size of 0x10000
 func DEC(n uint16, none uint16, cpu *CPU, memory []uint8) {
 	temp := n - 1
 	if temp&0xFF == 0 {
@@ -701,7 +702,7 @@ func DEC(n uint16, none uint16, cpu *CPU, memory []uint8) {
 // 			n, a 16 bit register
 // 			none, not used in this function
 // 			cpu, CPU struct to edit flag register (register F)
-// 			memory, an array of 8 bit values with the size of 0xFFFF
+// 			memory, an array of 8 bit values with the size of 0x10000
 func DEC16b(nn uint16, none uint16, cpu *CPU, memory []uint8) {
 	nn--
 }
@@ -745,7 +746,7 @@ func ReadOpcode(opcode uint32, cpu *CPU, memory []uint8) {
 
 	if (opcode > 0xFF) && ((opcode&0xCB00) != 0xCB00) || opcode > 0xFFFF {
 		if opcode > 0xFFFF {
-			immediateValue = uint16(opcode)
+			immediateValue = uint16(opcode & 0xFFFF)
 			opcode = opcode >> 16
 		} else {
 			immediateValue = uint16(opcode) & 0xFF
