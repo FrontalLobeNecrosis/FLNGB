@@ -270,6 +270,11 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 
 		// TODO: Find a pattern to replace switch case stack with
 		switch i {
+		case 0x00:
+			caller.eightBitFuncArray[i] = NOP
+			caller.eightbitparam1[i] = uint16(immediateValue)
+			caller.eightbitparam2[i] = uint16(immediateValue)
+			break
 		case 0x02:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(memory[cpu.registerBC])
@@ -804,6 +809,18 @@ func SCF(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
 		cpu.registerF = cpu.registerF ^ 0b00100000
 	}
 	cpu.cycles += 4
+}
+
+// No operation, does nothing
+//
+// params:
+// 			none1, not used in this function
+// 			none2, not used in this function
+// 			cpu, CPU struct to edit flag register (register F)
+// 			memory, an array of 8 bit values with the size of 0x10000
+func NOP(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
+	cpu.cycles += 4
+	return
 }
 
 // Takes in an opcode and runs the function with appropriate params associated with that code
