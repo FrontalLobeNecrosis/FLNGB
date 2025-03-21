@@ -300,11 +300,18 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(GetMemoryAndIncrement(memory, &cpu.registerHL))
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
+			break
 		case 0x2A:
 			// TODO: Fix the way the memory and HL register is accessed and updated
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = uint16(GetMemoryAndIncrement(memory, &cpu.registerHL))
+			break
+		case 0x2F:
+			caller.eightBitFuncArray[i] = CPL
+			caller.eightbitparam1[i] = uint16(cpu.registerA)
+			caller.eightbitparam2[i] = immediateValue
+			break
 		case 0x32:
 			// TODO: Fix the way the memory and HL register is accessed and updated
 			caller.eightBitFuncArray[i] = LDr
@@ -730,6 +737,25 @@ func SWAP(n uint16, none uint16, cpu *CPU) {
 	}
 	if (cpu.registerF & 0b00010000) == 0b00010000 {
 		cpu.registerF = cpu.registerF ^ 0b00010000
+	}
+}
+
+// TODO: implement DAA function
+
+// Flips every bit in the arithemtic register (registerA)
+//
+// params:
+// 			n, registerA
+// 			none, not used in this function
+// 			cpu, CPU struct to edit flag register (register F)
+// 			memory, an array of 8 bit values with the size of 0x10000
+func CPL(n uint16, none uint16, cpu *CPU, memory []uint8) {
+	n = n ^ 0b11111111
+	if (cpu.registerF & 0b01000000) != 0b01000000 {
+		cpu.registerF = cpu.registerF | 0b01000000
+	}
+	if (cpu.registerF & 0b00100000) != 0b00100000 {
+		cpu.registerF = cpu.registerF | 0b00100000
 	}
 }
 
