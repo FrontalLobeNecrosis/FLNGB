@@ -390,6 +390,18 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam2[i] = 0
 		}
 
+		if i == 0xF3 {
+			caller.eightBitFuncArray[i] = DI
+			caller.eightbitparam1[i] = 0
+			caller.eightbitparam2[i] = 0
+		}
+
+		if i == 0xFB {
+			caller.eightBitFuncArray[i] = EI
+			caller.eightbitparam1[i] = 0
+			caller.eightbitparam2[i] = 0
+		}
+
 	}
 	return caller
 }
@@ -867,6 +879,39 @@ func NOP(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
 func HALT(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
 	cpu.cycles += 4
 	cpu.halted = true
+}
+
+// TODO: Implement stop instruction
+func STOP(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
+	return
+}
+
+// Disables interrupts, not immediately but after instruction
+// after DI is executed
+//
+// params:
+//
+//	none1, not used in this function
+//	none2, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func DI(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
+	cpu.cycles += 4
+	cpu.interrupts = false
+}
+
+// Enables interrupts, not immediately but after instruction
+// after EI is executed
+//
+// params:
+//
+//	none1, not used in this function
+//	none2, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func EI(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
+	cpu.cycles += 4
+	cpu.interrupts = true
 }
 
 // Takes in an opcode and runs the function with appropriate params associated with that code
