@@ -18,6 +18,7 @@ type CPU struct {
 	registerPC uint16
 	cycles     uint32
 	halted     bool
+	interrupts bool
 }
 
 /*
@@ -42,6 +43,7 @@ func initCPU(cpu *CPU) *CPU {
 	cpu.registerPC = 0x0100
 	cpu.cycles = 0
 	cpu.halted = false
+	cpu.interrupts = false
 	return cpu
 }
 
