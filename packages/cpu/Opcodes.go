@@ -384,6 +384,12 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			break
 		}
 
+		if i == 0x76 {
+			caller.eightBitFuncArray[i] = HALT
+			caller.eightbitparam1[i] = 0
+			caller.eightbitparam2[i] = 0
+		}
+
 	}
 	return caller
 }
@@ -392,9 +398,10 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 // proper functions and params at the proper opcode location
 //
 // params:
-// 			cpu, a CPU struct containing registers to write to and read from
-// 			memory, an array of 8 bit values with the size of 0xFFFF
-// 			immediateValue, the immediate value included in the opcode, can be 8 or 16 bit
+//
+//	cpu, a CPU struct containing registers to write to and read from
+//	memory, an array of 8 bit values with the size of 0xFFFF
+//	immediateValue, the immediate value included in the opcode, can be 8 or 16 bit
 func NewCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_function_caller {
 	caller := CallerLoader(cpu, memory, immediateValue)
 	return caller
@@ -403,8 +410,9 @@ func NewCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_function
 // LDn loads a value from a register or immediate value, into a register
 //
 // params:
-// 			nn, a register to have a value written to
-// 			n, a register, memory addres, or an 8 bit immediate value to write from
+//
+//	nn, a register to have a value written to
+//	n, a register, memory addres, or an 8 bit immediate value to write from
 func LDn(nn uint16, n uint16, cpu *CPU, memory []uint8) {
 	nn = n
 }
@@ -413,8 +421,9 @@ func LDn(nn uint16, n uint16, cpu *CPU, memory []uint8) {
 // or immediate value r1
 //
 // params:
-// 			r1, a register to write to
-// 			r2, a register, memory addres, or an 8 bit immediate value being read from
+//
+//	r1, a register to write to
+//	r2, a register, memory addres, or an 8 bit immediate value being read from
 func LDr(r1 uint16, r2 uint16, cpu *CPU, memory []uint8) {
 	r1 = r2
 }
@@ -423,8 +432,9 @@ func LDr(r1 uint16, r2 uint16, cpu *CPU, memory []uint8) {
 // values (like the paired registers) this is the reason every other function has the 16 bit params
 //
 // params:
-// 			r, a register to write to
-// 			value, a paired register or an 16 bit immediate value being read from
+//
+//	r, a register to write to
+//	value, a paired register or an 16 bit immediate value being read from
 func LD16b(r uint16, value uint16, cpu *CPU, memory []uint8) {
 	r = value
 }
@@ -433,8 +443,9 @@ func LD16b(r uint16, value uint16, cpu *CPU, memory []uint8) {
 // this is the reason all functions have the CPU param
 //
 // params:
-// 			r, a register to write to
-// 			value, a paired register or an 16 bit immediate value being read from
+//
+//	r, a register to write to
+//	value, a paired register or an 16 bit immediate value being read from
 func LDFlag(r uint16, value uint16, cpu *CPU, memory []uint8) {
 	r = value
 	cpu.registerF = cpu.registerF & 0b00110000
@@ -443,9 +454,10 @@ func LDFlag(r uint16, value uint16, cpu *CPU, memory []uint8) {
 // Pushes 16 bits worth of values onto the memory stack by SP register
 //
 // params:
-// 			r, SP register (stack pointer)
-// 			value, value to be pushed onto the stack. either paired register or immediate value
-// 			memory, an array of 8 bit values with the size of 0xFFFF, will store the pushed value
+//
+//	r, SP register (stack pointer)
+//	value, value to be pushed onto the stack. either paired register or immediate value
+//	memory, an array of 8 bit values with the size of 0xFFFF, will store the pushed value
 func PUSH(r uint16, value uint16, cpu *CPU, memory []uint8) {
 	r--
 	Write16bToMemory(r, value, memory)
@@ -454,9 +466,10 @@ func PUSH(r uint16, value uint16, cpu *CPU, memory []uint8) {
 // Pops 16 bit worth of values off of the memory stack by SP register
 //
 // params:
-// 			r1, SP register (stack pointer)
-// 			r2, paired register to push value onto
-// 			memory, an array of 8 bit values with the size of 0xFFFF, will have values poped off it
+//
+//	r1, SP register (stack pointer)
+//	r2, paired register to push value onto
+//	memory, an array of 8 bit values with the size of 0xFFFF, will have values poped off it
 func POP(r1 uint16, r2 uint16, cpu *CPU, memory []uint8) {
 	Read16bFromMemory(r1, r2, memory)
 }
@@ -464,11 +477,12 @@ func POP(r1 uint16, r2 uint16, cpu *CPU, memory []uint8) {
 // Adds a value to the arithmitic registry (register A)
 //
 // params:
-// 			A, arithmitic register (register A)
-// 			n, a value to be added to arithmitic register, can be value from memory,
-// 				   other registers, or immediate value
-// 			cpu, CPU struct to edit flag register (register F)
-// 			memory, an array of 8 bit values with the size of 0xFFFF
+//
+//	A, arithmitic register (register A)
+//	n, a value to be added to arithmitic register, can be value from memory,
+//		   other registers, or immediate value
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0xFFFF
 func ADD(A uint16, n uint16, cpu *CPU, memory []uint8) {
 	temp := n
 	if n > 0xFF {
@@ -493,10 +507,11 @@ func ADD(A uint16, n uint16, cpu *CPU, memory []uint8) {
 // Adds a value in a paired register to paired register HL
 //
 // params:
-// 			HL, paired register HL
-// 			n, any paired register
-// 			cpu, CPU struct to edit flag register (register F)
-// 			memory, an array of 8 bit values with the size of 0xFFFF
+//
+//	HL, paired register HL
+//	n, any paired register
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0xFFFF
 func ADD16b(HL uint16, n uint16, cpu *CPU, memory []uint8) {
 	result := HL + n
 	if (cpu.registerF & 0b01000000) == 0b01000000 {
@@ -514,10 +529,11 @@ func ADD16b(HL uint16, n uint16, cpu *CPU, memory []uint8) {
 // Adds an 8 bit signed immediate value to the SP register (Stack Pointer)
 //
 // params:
-// 			SP, SP register (Stack Pointer)
-// 			n, 8 bit signed immediate value
-// 			cpu, CPU struct to edit flag register (register F)
-// 			memory, an array of 8 bit values with the size of 0xFFFF
+//
+//	SP, SP register (Stack Pointer)
+//	n, 8 bit signed immediate value
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0xFFFF
 func ADDSP(SP uint16, n uint16, cpu *CPU, memory []uint8) {
 	//TODO: Figure out if signed immediate value would
 	// 		subtract from SP if it was negative
@@ -536,11 +552,12 @@ func ADDSP(SP uint16, n uint16, cpu *CPU, memory []uint8) {
 // Subtracts a value from the arithmitic register (register A)
 //
 // params:
-// 			A, arithmitic register (register A)
-// 			n, a value to be added to arithmitic register, can be value from memory,
-// 				   other registers, or immediate value
-// 			cpu, CPU struct to edit flag register (register F)
-// 			memory, an array of 8 bit values with the size of 0xFFFF
+//
+//	A, arithmitic register (register A)
+//	n, a value to be added to arithmitic register, can be value from memory,
+//		   other registers, or immediate value
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0xFFFF
 func SUB(A uint16, n uint16, cpu *CPU, memory []uint8) {
 	temp := n
 	if n > 0xFF {
@@ -565,11 +582,12 @@ func SUB(A uint16, n uint16, cpu *CPU, memory []uint8) {
 // Logically and a value with the arithmetic register (register A)
 //
 // params:
-// 			A, arithmitic register (register A)
-// 			n, a value to be added to arithmitic register, can be value from memory,
-// 				   other registers, or immediate value
-// 			cpu, CPU struct to edit flag register (register F)
-// 			memory, an array of 8 bit values with the size of 0xFFFF
+//
+//	A, arithmitic register (register A)
+//	n, a value to be added to arithmitic register, can be value from memory,
+//		   other registers, or immediate value
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0xFFFF
 func AND(A uint16, n uint16, cpu *CPU, memory []uint8) {
 	result := A & n
 	if result&0xFF == 0 {
@@ -590,11 +608,12 @@ func AND(A uint16, n uint16, cpu *CPU, memory []uint8) {
 // Logically or a value with the arithmetic register (register A)
 //
 // params:
-// 			A, arithmitic register (register A)
-// 			n, a value to be added to arithmitic register, can be value from memory,
-// 				   other registers, or immediate value
-// 			cpu, CPU struct to edit flag register (register F)
-// 			memory, an array of 8 bit values with the size of 0xFFFF
+//
+//	A, arithmitic register (register A)
+//	n, a value to be added to arithmitic register, can be value from memory,
+//		   other registers, or immediate value
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0xFFFF
 func OR(A uint16, n uint16, cpu *CPU, memory []uint8) {
 	result := A | n
 	if result&0xFF == 0 {
@@ -615,11 +634,12 @@ func OR(A uint16, n uint16, cpu *CPU, memory []uint8) {
 // Logically xor a value with the arithmetic register (register A)
 //
 // params:
-// 			A, arithmitic register (register A)
-// 			n, a value to be added to arithmitic register, can be value from memory,
-// 				   other registers, or immediate value
-// 			cpu, CPU struct to edit flag register (register F)
-// 			memory, an array of 8 bit values with the size of 0xFFFF
+//
+//	A, arithmitic register (register A)
+//	n, a value to be added to arithmitic register, can be value from memory,
+//		   other registers, or immediate value
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0xFFFF
 func XOR(A uint16, n uint16, cpu *CPU, memory []uint8) {
 	result := A ^ n
 	if result&0xFF == 0 {
@@ -641,11 +661,12 @@ func XOR(A uint16, n uint16, cpu *CPU, memory []uint8) {
 // be entered into register A instead the results are discarded otherwise this is the same as SUB
 //
 // params:
-// 			A, arithmitic register (register A)
-// 			n, a value to be added to arithmitic register, can be value from memory,
-// 				   other registers, or immediate value
-// 			cpu, CPU struct to edit flag register (register F)
-// 			memory, an array of 8 bit values with the size of 0xFFFF
+//
+//	A, arithmitic register (register A)
+//	n, a value to be added to arithmitic register, can be value from memory,
+//		   other registers, or immediate value
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0xFFFF
 func CP(A uint16, n uint16, cpu *CPU, memory []uint8) {
 	temp := n
 	if n > 0xFF {
@@ -668,10 +689,11 @@ func CP(A uint16, n uint16, cpu *CPU, memory []uint8) {
 // Increments a non-paired register or value in memory
 //
 // params:
-// 			n, a non paired register or a spot in memory
-// 			none, not used in this function
-// 			cpu, CPU struct to edit flag register (register F)
-// 			memory, an array of 8 bit values with the size of 0xFFFF
+//
+//	n, a non paired register or a spot in memory
+//	none, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0xFFFF
 func INC(n uint16, none uint16, cpu *CPU, memory []uint8) {
 	temp := n + 1
 	if temp&0xFF == 0 {
@@ -689,10 +711,11 @@ func INC(n uint16, none uint16, cpu *CPU, memory []uint8) {
 // Increments a 16 bit register
 //
 // params:
-// 			n, a 16 bit register
-// 			none, not used in this function
-// 			cpu, CPU struct to edit flag register (register F)
-// 			memory, an array of 8 bit values with the size of 0xFFFF
+//
+//	n, a 16 bit register
+//	none, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0xFFFF
 func INC16b(nn uint16, none uint16, cpu *CPU, memory []uint8) {
 	nn++
 }
@@ -700,10 +723,11 @@ func INC16b(nn uint16, none uint16, cpu *CPU, memory []uint8) {
 // Deincrements a non paired register or value in memory
 //
 // params:
-// 			n, a non paired register or a spot in memory
-// 			none, not used in this function
-// 			cpu, CPU struct to edit flag register (register F)
-// 			memory, an array of 8 bit values with the size of 0x10000
+//
+//	n, a non paired register or a spot in memory
+//	none, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
 func DEC(n uint16, none uint16, cpu *CPU, memory []uint8) {
 	temp := n - 1
 	if temp&0xFF == 0 {
@@ -721,10 +745,11 @@ func DEC(n uint16, none uint16, cpu *CPU, memory []uint8) {
 // Deincrements a 16 bit register
 //
 // params:
-// 			n, a 16 bit register
-// 			none, not used in this function
-// 			cpu, CPU struct to edit flag register (register F)
-// 			memory, an array of 8 bit values with the size of 0x10000
+//
+//	n, a 16 bit register
+//	none, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
 func DEC16b(nn uint16, none uint16, cpu *CPU, memory []uint8) {
 	nn--
 }
@@ -732,9 +757,10 @@ func DEC16b(nn uint16, none uint16, cpu *CPU, memory []uint8) {
 // Swaps the lower and upper bits of n
 //
 // params:
-// 			n, a non paired register or spot in memory
-// 			none, not used in this function
-// 			cpu, CPU struct to edit flag register (register F)
+//
+//	n, a non paired register or spot in memory
+//	none, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
 func SWAP(n uint16, none uint16, cpu *CPU) {
 	lower := n & 0xF
 	upper := n & 0xF0
@@ -756,14 +782,18 @@ func SWAP(n uint16, none uint16, cpu *CPU) {
 }
 
 // TODO: implement DAA function
+func DAA(n uint16, none uint16, cpu *CPU, memory []uint8) {
+	return
+}
 
 // Compliments/flips every bit in the arithemtic register (registerA)
 //
 // params:
-// 			n, registerA
-// 			none, not used in this function
-// 			cpu, CPU struct to edit flag register (register F)
-// 			memory, an array of 8 bit values with the size of 0x10000
+//
+//	n, registerA
+//	none, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
 func CPL(n uint16, none uint16, cpu *CPU, memory []uint8) {
 	n = n ^ 0b11111111
 	if (cpu.registerF & 0b01000000) != 0b01000000 {
@@ -778,10 +808,11 @@ func CPL(n uint16, none uint16, cpu *CPU, memory []uint8) {
 // Compliments/flips the carry flag in the flag register (registerF)
 //
 // params:
-// 			none1, not used in this function
-// 			none2, not used in this function
-// 			cpu, CPU struct to edit flag register (register F)
-// 			memory, an array of 8 bit values with the size of 0x10000
+//
+//	none1, not used in this function
+//	none2, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
 func CCF(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
 	cpu.registerF = cpu.registerF ^ 0b00010000
 	if (cpu.registerF & 0b01000000) == 0b01000000 {
@@ -796,10 +827,11 @@ func CCF(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
 // Sets the carry flag in the flag register (registerF)
 //
 // params:
-// 			none1, not used in this function
-// 			none2, not used in this function
-// 			cpu, CPU struct to edit flag register (register F)
-// 			memory, an array of 8 bit values with the size of 0x10000
+//
+//	none1, not used in this function
+//	none2, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
 func SCF(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
 	cpu.registerF = cpu.registerF | 0b00010000
 	if (cpu.registerF & 0b01000000) == 0b01000000 {
@@ -814,22 +846,37 @@ func SCF(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
 // No operation, does nothing
 //
 // params:
-// 			none1, not used in this function
-// 			none2, not used in this function
-// 			cpu, CPU struct to edit flag register (register F)
-// 			memory, an array of 8 bit values with the size of 0x10000
+//
+//	none1, not used in this function
+//	none2, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
 func NOP(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
 	cpu.cycles += 4
-	return
+	cpu.registerPC++
+}
+
+// Halts the cpu and prevents it from performing instructions
+//
+// params:
+//
+//	none1, not used in this function
+//	none2, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func HALT(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
+	cpu.cycles += 4
+	cpu.halted = true
 }
 
 // Takes in an opcode and runs the function with appropriate params associated with that code
 //
 // params:
-// 			opcode, can be 8 or 16 bit value 16 bit has to begin at 0xCB00 and ends at 0xCBFF
-// 					and might be followed by an 8 or 16 bit immediate value
-// 			cpu, where the registers are read from and written to
-// 			memory, An arrray of 8 bit integers that is 0x10000 addresses long
+//
+//	opcode, can be 8 or 16 bit value 16 bit has to begin at 0xCB00 and ends at 0xCBFF
+//			and might be followed by an 8 or 16 bit immediate value
+//	cpu, where the registers are read from and written to
+//	memory, An arrray of 8 bit integers that is 0x10000 addresses long
 func ReadOpcode(opcode uint32, cpu *CPU, memory []uint8) {
 
 	var immediateValue uint16
