@@ -280,6 +280,11 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam1[i] = uint16(memory[cpu.registerBC])
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
 			break
+		case 0x07:
+			caller.eightBitFuncArray[i] = RLCA
+			caller.eightbitparam1[i] = uint16(cpu.registerA)
+			caller.eightbitparam2[i] = 0
+			break
 		case 0x08:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = cpu.registerSP
@@ -290,15 +295,30 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = uint16(memory[cpu.registerBC])
 			break
+		case 0x0F:
+			caller.eightBitFuncArray[i] = RRCA
+			caller.eightbitparam1[i] = uint16(cpu.registerA)
+			caller.eightbitparam2[i] = 0
+			break
 		case 0x12:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(memory[cpu.registerDE])
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
 			break
+		case 0x17:
+			caller.eightBitFuncArray[i] = RLA
+			caller.eightbitparam1[i] = uint16(cpu.registerA)
+			caller.eightbitparam2[i] = 0
+			break
 		case 0x1A:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = uint16(memory[cpu.registerDE])
+			break
+		case 0x1F:
+			caller.eightBitFuncArray[i] = RRA
+			caller.eightbitparam1[i] = uint16(cpu.registerA)
+			caller.eightbitparam2[i] = 0
 			break
 		case 0x22:
 			// TODO: Fix the way the memory and HL register is accessed and updated
@@ -914,6 +934,134 @@ func EI(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
 	cpu.interrupts = true
 }
 
+// Rotates register A left, old bit 7 becomes carry flag
+//
+// params:
+//
+//	n, register A
+//	none, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func RLCA(n uint16, none uint16, cpu *CPU, memory []uint8) {
+	carry := n & 0b10000000
+	n = (n << 1) & 0xFF
+	if carry > 0 {
+		SetCFlag(cpu)
+	} else {
+		if (cpu.registerF & 0b00010000) == 0b00010000 {
+			ResetCFlag(cpu)
+		}
+	}
+	if n == 0 {
+		SetZFlag(cpu)
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		ResetNFlag(cpu)
+	}
+	if (cpu.registerF & 0b00100000) == 0b00100000 {
+		ResetHFlag(cpu)
+	}
+	cpu.cycles += 4
+}
+
+// Rotates register A left through carry flag,
+// old bit 7 becomes carry flag
+//
+// params:
+//
+//	n, register A
+//	none, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func RLA(n uint16, none2 uint16, cpu *CPU, memory []uint8) {
+	carry := n & 0b10000000
+	n = (n << 1) & 0xFF
+	if (cpu.registerF & 0b00010000) == 0b00010000 {
+		n = n | 0x01
+	}
+	if carry > 0 {
+		SetCFlag(cpu)
+	} else {
+		if (cpu.registerF & 0b00010000) == 0b00010000 {
+			ResetCFlag(cpu)
+		}
+	}
+	if n == 0 {
+		SetZFlag(cpu)
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		ResetNFlag(cpu)
+	}
+	if (cpu.registerF & 0b00100000) == 0b00100000 {
+		ResetHFlag(cpu)
+	}
+	cpu.cycles += 4
+}
+
+// Rotates register A right, old bit 0 becomes carry flag
+//
+// params:
+//
+//	n, register A
+//	none, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func RRCA(n uint16, none2 uint16, cpu *CPU, memory []uint8) {
+	carry := n & 0x01
+	n = n >> 1
+	if carry > 0 {
+		SetCFlag(cpu)
+	} else {
+		if (cpu.registerF & 0b00010000) == 0b00010000 {
+			ResetCFlag(cpu)
+		}
+	}
+	if n == 0 {
+		SetZFlag(cpu)
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		ResetNFlag(cpu)
+	}
+	if (cpu.registerF & 0b00100000) == 0b00100000 {
+		ResetHFlag(cpu)
+	}
+	cpu.cycles += 4
+}
+
+// Rotates register A right through carry flag,
+// old bit 0 becomes carry flag
+//
+// params:
+//
+//	n, register A
+//	none, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func RRA(n uint16, none2 uint16, cpu *CPU, memory []uint8) {
+	carry := n & 0x01
+	n = n >> 1
+	if (cpu.registerF & 0b00010000) == 0b00010000 {
+		n = n | 0b10000000
+	}
+	if carry > 0 {
+		SetCFlag(cpu)
+	} else {
+		if (cpu.registerF & 0b00010000) == 0b00010000 {
+			ResetCFlag(cpu)
+		}
+	}
+	if n == 0 {
+		SetZFlag(cpu)
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		ResetNFlag(cpu)
+	}
+	if (cpu.registerF & 0b00100000) == 0b00100000 {
+		ResetHFlag(cpu)
+	}
+	cpu.cycles += 4
+}
+
 // Takes in an opcode and runs the function with appropriate params associated with that code
 //
 // params:
@@ -921,7 +1069,7 @@ func EI(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
 //	opcode, can be 8 or 16 bit value 16 bit has to begin at 0xCB00 and ends at 0xCBFF
 //			and might be followed by an 8 or 16 bit immediate value
 //	cpu, where the registers are read from and written to
-//	memory, An arrray of 8 bit integers that is 0x10000 addresses long
+//	memory, An array of 8 bit integers that is 0x10000 addresses long
 func ReadOpcode(opcode uint32, cpu *CPU, memory []uint8) {
 
 	var immediateValue uint16
