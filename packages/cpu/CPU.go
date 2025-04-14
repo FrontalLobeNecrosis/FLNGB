@@ -132,3 +132,43 @@ func Read16bFromMemory(r1 uint16, r2 uint16, memory []uint8) {
 	r1++
 	r2 = value
 }
+
+// Sets the zero flag on register F
+func SetZFlag(cpu *CPU) {
+	cpu.registerF = cpu.registerF | 0b10000000
+}
+
+// Resets the zero flag on register F
+func ResetZFlag(cpu *CPU) {
+	cpu.registerF = cpu.registerF ^ 0b10000000
+}
+
+// Sets the subtraction flag on register F
+func SetNFlag(cpu *CPU) {
+	cpu.registerF = cpu.registerF | 0b01000000
+}
+
+// Resets the subtraction flag on register F
+func ResetNFlag(cpu *CPU) {
+	cpu.registerF = cpu.registerF ^ 0b01000000
+}
+
+// Sets the half carry flag on register F
+func SetHFlag(cpu *CPU) {
+	cpu.registerF = cpu.registerF | 0b00100000
+}
+
+// Resets the half carry flag on register F
+func ResetHFlag(cpu *CPU) {
+	cpu.registerF = cpu.registerF ^ 0b00100000
+}
+
+// Sets the carry flag on register F
+func SetCFlag(cpu *CPU) {
+	cpu.registerF = cpu.registerF | 0b00010000
+}
+
+// Resets the carry flag on register F
+func ResetCFlag(cpu *CPU) {
+	cpu.registerF = cpu.registerF ^ 0b00010000
+}
