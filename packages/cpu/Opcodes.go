@@ -8,7 +8,7 @@ type Opcode_function_caller struct {
 	eightBitFuncArray   [255]func(uint16, uint16, *CPU, []uint8)
 	eightbitparam1      [255]uint16
 	eightbitparam2      [255]uint16
-	sixteenBitFuncArray [255]func(uint16, uint16, *CPU)
+	sixteenBitFuncArray [255]func(uint16, uint16, *CPU, []uint8)
 	sixteenbitparam1    [255]uint16
 	sixteenbitparam2    [255]uint16
 }
@@ -19,6 +19,47 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 	caller := new(Opcode_function_caller)
 
 	for i := 0; i <= 255; i++ {
+
+		if i < 0x20 {
+			caller.eightbitparam2[i] = 0
+			if i < 0x08 {
+				caller.sixteenBitFuncArray[i] = RLCn
+			} else if i < 0x10 {
+				caller.sixteenBitFuncArray[i] = RRCn
+			} else if i < 0x18 {
+				caller.sixteenBitFuncArray[i] = RLn
+			} else if i < 0x20 {
+				caller.sixteenBitFuncArray[i] = RRn
+			}
+			remainder := i % 8
+
+			switch remainder {
+			case 0:
+				caller.eightbitparam1[i] = uint16(cpu.registerB)
+				break
+			case 1:
+				caller.eightbitparam1[i] = uint16(cpu.registerC)
+				break
+			case 2:
+				caller.eightbitparam1[i] = uint16(cpu.registerD)
+				break
+			case 3:
+				caller.eightbitparam1[i] = uint16(cpu.registerE)
+				break
+			case 4:
+				caller.eightbitparam1[i] = uint16(cpu.registerH)
+				break
+			case 5:
+				caller.eightbitparam1[i] = uint16(cpu.registerL)
+				break
+			case 6:
+				caller.eightbitparam1[i] = uint16(memory[cpu.registerHL])
+				break
+			case 7:
+				caller.eightbitparam1[i] = uint16(cpu.registerA)
+				break
+			}
+		}
 
 		if i <= 0x3B && (i%16 == 1 || i%16 == 9 || i%16 == 3 || i%16 == 11) {
 
@@ -793,7 +834,7 @@ func DEC16b(nn uint16, none uint16, cpu *CPU, memory []uint8) {
 //	n, a non paired register or spot in memory
 //	none, not used in this function
 //	cpu, CPU struct to edit flag register (register F)
-func SWAP(n uint16, none uint16, cpu *CPU) {
+func SWAP(n uint16, none uint16, cpu *CPU, mempry []uint8) {
 	lower := n & 0xF
 	upper := n & 0xF0
 	lower = lower << 4
@@ -947,6 +988,7 @@ func RLCA(n uint16, none uint16, cpu *CPU, memory []uint8) {
 	n = (n << 1) & 0xFF
 	if carry > 0 {
 		SetCFlag(cpu)
+		n = n | 0b00000001
 	} else {
 		if (cpu.registerF & 0b00010000) == 0b00010000 {
 			ResetCFlag(cpu)
@@ -1011,6 +1053,7 @@ func RRCA(n uint16, none2 uint16, cpu *CPU, memory []uint8) {
 	n = n >> 1
 	if carry > 0 {
 		SetCFlag(cpu)
+		n = n | 0b10000000
 	} else {
 		if (cpu.registerF & 0b00010000) == 0b00010000 {
 			ResetCFlag(cpu)
@@ -1062,6 +1105,138 @@ func RRA(n uint16, none2 uint16, cpu *CPU, memory []uint8) {
 	cpu.cycles += 4
 }
 
+// Rotates a register or a spot in memory left,
+// old bit 7 becomes carry flag
+//
+// params:
+//
+//	n, a register or spot in memory
+//	none, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func RLCn(n uint16, none uint16, cpu *CPU, memory []uint8) {
+	carry := n & 0b10000000
+	n = (n << 1) & 0xFF
+	if carry > 0 {
+		SetCFlag(cpu)
+		n = n | 0b00000001
+	} else {
+		if (cpu.registerF & 0b00010000) == 0b00010000 {
+			ResetCFlag(cpu)
+		}
+	}
+	if n == 0 {
+		SetZFlag(cpu)
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		ResetNFlag(cpu)
+	}
+	if (cpu.registerF & 0b00100000) == 0b00100000 {
+		ResetHFlag(cpu)
+	}
+	cpu.cycles += 8
+}
+
+// Rotates a register or a spot in memory left
+// through carry flag, old bit 7 becomes carry flag
+//
+// params:
+//
+//	n, a register or spot in memory
+//	none, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func RLn(n uint16, none2 uint16, cpu *CPU, memory []uint8) {
+	carry := n & 0b10000000
+	n = (n << 1) & 0xFF
+	if (cpu.registerF & 0b00010000) == 0b00010000 {
+		n = n | 0x01
+	}
+	if carry > 0 {
+		SetCFlag(cpu)
+	} else {
+		if (cpu.registerF & 0b00010000) == 0b00010000 {
+			ResetCFlag(cpu)
+		}
+	}
+	if n == 0 {
+		SetZFlag(cpu)
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		ResetNFlag(cpu)
+	}
+	if (cpu.registerF & 0b00100000) == 0b00100000 {
+		ResetHFlag(cpu)
+	}
+	cpu.cycles += 4
+}
+
+// Rotates a register or a spot in memory right,
+// old bit 0 becomes carry flag
+//
+// params:
+//
+//	n, a register or spot in memory
+//	none, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func RRCn(n uint16, none uint16, cpu *CPU, memory []uint8) {
+	carry := n & 0b00000001
+	n = (n >> 1) & 0xFF
+	if carry > 0 {
+		SetCFlag(cpu)
+		n = n | 0b10000000
+	} else {
+		if (cpu.registerF & 0b00010000) == 0b00010000 {
+			ResetCFlag(cpu)
+		}
+	}
+	if n == 0 {
+		SetZFlag(cpu)
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		ResetNFlag(cpu)
+	}
+	if (cpu.registerF & 0b00100000) == 0b00100000 {
+		ResetHFlag(cpu)
+	}
+	cpu.cycles += 8
+}
+
+// Rotates a register or a spot in memory right
+// through carry flag, old bit 0 becomes carry flag
+//
+// params:
+//
+//	n, a register or spot in memory
+//	none, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func RRn(n uint16, none uint16, cpu *CPU, memory []uint8) {
+	carry := n & 0b00000001
+	n = (n >> 1) & 0xFF
+	if (cpu.registerF & 0b00010000) == 0b00010000 {
+		n = n | 0b10000000
+	}
+	if carry > 0 {
+		SetCFlag(cpu)
+	} else {
+		if (cpu.registerF & 0b00010000) == 0b00010000 {
+			ResetCFlag(cpu)
+		}
+	}
+	if n == 0 {
+		SetZFlag(cpu)
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		ResetNFlag(cpu)
+	}
+	if (cpu.registerF & 0b00100000) == 0b00100000 {
+		ResetHFlag(cpu)
+	}
+	cpu.cycles += 8
+}
+
 // Takes in an opcode and runs the function with appropriate params associated with that code
 //
 // params:
@@ -1090,7 +1265,7 @@ func ReadOpcode(opcode uint32, cpu *CPU, memory []uint8) {
 		function := caller.sixteenBitFuncArray[opcode-0xCB00]
 		first := caller.sixteenbitparam1[opcode-0xCB00]
 		second := caller.sixteenbitparam2[opcode-0xCB00]
-		function(first, second, cpu)
+		function(first, second, cpu, memory)
 	} else {
 		function := caller.eightBitFuncArray[opcode]
 		first := caller.eightbitparam1[opcode]
