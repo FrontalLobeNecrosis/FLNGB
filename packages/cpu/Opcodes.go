@@ -40,6 +40,10 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 				caller.sixteenBitFuncArray[i] = SRL
 			} else if i < 0x80 {
 				caller.sixteenBitFuncArray[i] = BIT
+			} else if i < 0xC0 {
+				caller.sixteenBitFuncArray[i] = RES
+			} else {
+				caller.sixteenBitFuncArray[i] = SET
 			}
 
 			remainder := i % 8
@@ -1328,6 +1332,44 @@ func SRA(n uint16, none uint16, cpu *CPU, memory []uint8) {
 	}
 }
 
+// Shifts a register or a value in memory
+// right into carry, MSB is set to 0
+//
+// params:
+//
+//	n, a register or spot in memory
+//	none, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func SRL(n uint16, none uint16, cpu *CPU, memory []uint8) {
+	carry := uint8(n) & 1
+	n = (n >> 1) & 0xFF
+	if n == 0 {
+		SetZFlag(cpu)
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		ResetNFlag(cpu)
+	}
+	if (cpu.registerF & 0b00100000) == 0b00100000 {
+		ResetHFlag(cpu)
+	}
+	if carry > 0 {
+		SetCFlag(cpu)
+	} else {
+		if (cpu.registerF & 0b0001000) == 0b00010000 {
+			ResetCFlag(cpu)
+		}
+	}
+}
+
+// Tests a bit in a register or value in memory
+//
+// params:
+//
+//	b, the position of the bit to be examined
+//	r, a register or spot in memory
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
 func BIT(b uint16, r uint16, cpu *CPU, memory []uint8) {
 	var bit uint8
 	switch b {
@@ -1365,32 +1407,83 @@ func BIT(b uint16, r uint16, cpu *CPU, memory []uint8) {
 	SetHFlag(cpu)
 }
 
-// Shifts a register or a value in memory
-// right into carry, MSB is set to 0
+// Sets a bit in a register or value in memory
+//
 // params:
 //
-//	n, a register or spot in memory
-//	none, not used in this function
+//	b, the position of the bit to be set
+//	r, a register or spot in memory
 //	cpu, CPU struct to edit flag register (register F)
 //	memory, an array of 8 bit values with the size of 0x10000
-func SRL(n uint16, none uint16, cpu *CPU, memory []uint8) {
-	carry := uint8(n) & 1
-	n = (n >> 1) & 0xFF
-	if n == 0 {
-		SetZFlag(cpu)
+func SET(b uint16, r uint16, cpu *CPU, memory []uint8) {
+	var bit uint8
+	switch b {
+	case 0:
+		bit = 0b00000001
+		break
+	case 1:
+		bit = 0b00000010
+		break
+	case 2:
+		bit = 0b00000100
+		break
+	case 3:
+		bit = 0b00001000
+		break
+	case 4:
+		bit = 0b00010000
+		break
+	case 5:
+		bit = 0b00100000
+		break
+	case 6:
+		bit = 0b01000000
+		break
+	case 7:
+		bit = 0b10000000
+		break
 	}
-	if (cpu.registerF & 0b01000000) == 0b01000000 {
-		ResetNFlag(cpu)
+	r = r | uint16(bit)
+}
+
+// TResets a bit in a register or value in memory
+//
+// params:
+//
+//	b, the position of the bit to be reset
+//	r, a register or spot in memory
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func RES(b uint16, r uint16, cpu *CPU, memory []uint8) {
+	var bit uint8
+	switch b {
+	case 0:
+		bit = 0b00000001
+		break
+	case 1:
+		bit = 0b00000010
+		break
+	case 2:
+		bit = 0b00000100
+		break
+	case 3:
+		bit = 0b00001000
+		break
+	case 4:
+		bit = 0b00010000
+		break
+	case 5:
+		bit = 0b00100000
+		break
+	case 6:
+		bit = 0b01000000
+		break
+	case 7:
+		bit = 0b10000000
+		break
 	}
-	if (cpu.registerF & 0b00100000) == 0b00100000 {
-		ResetHFlag(cpu)
-	}
-	if carry > 0 {
-		SetCFlag(cpu)
-	} else {
-		if (cpu.registerF & 0b0001000) == 0b00010000 {
-			ResetCFlag(cpu)
-		}
+	if (r & uint16(bit)) > 0 {
+		r = r ^ uint16(bit)
 	}
 }
 
