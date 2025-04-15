@@ -5,12 +5,12 @@ package GBCPU
 // 16 bit functions and params are for 16 bit opcodes
 type Opcode_function_caller struct {
 	// TODO: Figure out if these need to hold pointers
-	eightBitFuncArray   [255]func(uint16, uint16, *CPU, []uint8)
-	eightbitparam1      [255]uint16
-	eightbitparam2      [255]uint16
-	sixteenBitFuncArray [255]func(uint16, uint16, *CPU, []uint8)
-	sixteenbitparam1    [255]uint16
-	sixteenbitparam2    [255]uint16
+	eightBitFuncArray   [256]func(uint16, uint16, *CPU, []uint8)
+	eightbitparam1      [256]uint16
+	eightbitparam2      [256]uint16
+	sixteenBitFuncArray [256]func(uint16, uint16, *CPU, []uint8)
+	sixteenbitparam1    [256]uint16
+	sixteenbitparam2    [256]uint16
 }
 
 // Function makes an Opcode_function_caller and takes a CPU struct and loades the
@@ -18,109 +18,110 @@ type Opcode_function_caller struct {
 func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_function_caller {
 	caller := new(Opcode_function_caller)
 
-	for i := 0; i <= 255; i++ {
+	for i := 0; i <= 0xFF; i++ {
 
+		// This initial set of blocks if for the sixteen bit array
+		// should contain all calls needed between 0 - 255
+		caller.sixteenbitparam2[i] = 0
+		if i < 0x08 {
+			caller.sixteenBitFuncArray[i] = RLCn
+		} else if i < 0x10 {
+			caller.sixteenBitFuncArray[i] = RRCn
+		} else if i < 0x18 {
+			caller.sixteenBitFuncArray[i] = RLn
+		} else if i < 0x20 {
+			caller.sixteenBitFuncArray[i] = RRn
+		} else if i < 0x28 {
+			caller.sixteenBitFuncArray[i] = SLA
+		} else if i < 0x30 {
+			caller.sixteenBitFuncArray[i] = SRA
+		} else if i < 0x38 {
+			caller.sixteenBitFuncArray[i] = SWAP
+		} else if i < 0x40 {
+			caller.sixteenBitFuncArray[i] = SRL
+		} else if i < 0x80 {
+			caller.sixteenBitFuncArray[i] = BIT
+		} else if i < 0xC0 {
+			caller.sixteenBitFuncArray[i] = RES
+		} else {
+			caller.sixteenBitFuncArray[i] = SET
+		}
+
+		remainder := i % 8
 		if i < 0x40 {
-			caller.eightbitparam2[i] = 0
-			if i < 0x08 {
-				caller.sixteenBitFuncArray[i] = RLCn
-			} else if i < 0x10 {
-				caller.sixteenBitFuncArray[i] = RRCn
-			} else if i < 0x18 {
-				caller.sixteenBitFuncArray[i] = RLn
-			} else if i < 0x20 {
-				caller.sixteenBitFuncArray[i] = RRn
-			} else if i < 0x28 {
-				caller.sixteenBitFuncArray[i] = SLA
-			} else if i < 0x30 {
-				caller.sixteenBitFuncArray[i] = SRA
-			} else if i < 0x38 {
-				caller.sixteenBitFuncArray[i] = SWAP
-			} else if i < 0x40 {
-				caller.sixteenBitFuncArray[i] = SRL
-			} else if i < 0x80 {
-				caller.sixteenBitFuncArray[i] = BIT
-			} else if i < 0xC0 {
-				caller.sixteenBitFuncArray[i] = RES
-			} else {
-				caller.sixteenBitFuncArray[i] = SET
+			switch remainder {
+			case 0:
+				caller.sixteenbitparam1[i] = uint16(cpu.registerB)
+				break
+			case 1:
+				caller.sixteenbitparam1[i] = uint16(cpu.registerC)
+				break
+			case 2:
+				caller.sixteenbitparam1[i] = uint16(cpu.registerD)
+				break
+			case 3:
+				caller.sixteenbitparam1[i] = uint16(cpu.registerE)
+				break
+			case 4:
+				caller.sixteenbitparam1[i] = uint16(cpu.registerH)
+				break
+			case 5:
+				caller.sixteenbitparam1[i] = uint16(cpu.registerL)
+				break
+			case 6:
+				caller.sixteenbitparam1[i] = uint16(memory[cpu.registerHL])
+				break
+			case 7:
+				caller.sixteenbitparam1[i] = uint16(cpu.registerA)
+				break
+			}
+		} else {
+			switch remainder {
+			case 0:
+				caller.sixteenbitparam2[i] = uint16(cpu.registerB)
+				break
+			case 1:
+				caller.sixteenbitparam2[i] = uint16(cpu.registerC)
+				break
+			case 2:
+				caller.sixteenbitparam2[i] = uint16(cpu.registerD)
+				break
+			case 3:
+				caller.sixteenbitparam2[i] = uint16(cpu.registerE)
+				break
+			case 4:
+				caller.sixteenbitparam2[i] = uint16(cpu.registerH)
+				break
+			case 5:
+				caller.sixteenbitparam2[i] = uint16(cpu.registerL)
+				break
+			case 6:
+				caller.sixteenbitparam2[i] = uint16(memory[cpu.registerHL])
+				break
+			case 7:
+				caller.sixteenbitparam2[i] = uint16(cpu.registerA)
+				break
 			}
 
-			remainder := i % 8
-			if i < 0x40 {
-				switch remainder {
-				case 0:
-					caller.sixteenbitparam1[i] = uint16(cpu.registerB)
-					break
-				case 1:
-					caller.sixteenbitparam1[i] = uint16(cpu.registerC)
-					break
-				case 2:
-					caller.sixteenbitparam1[i] = uint16(cpu.registerD)
-					break
-				case 3:
-					caller.sixteenbitparam1[i] = uint16(cpu.registerE)
-					break
-				case 4:
-					caller.sixteenbitparam1[i] = uint16(cpu.registerH)
-					break
-				case 5:
-					caller.sixteenbitparam1[i] = uint16(cpu.registerL)
-					break
-				case 6:
-					caller.sixteenbitparam1[i] = uint16(memory[cpu.registerHL])
-					break
-				case 7:
-					caller.sixteenbitparam1[i] = uint16(cpu.registerA)
-					break
-				}
-			} else {
-				switch remainder {
-				case 0:
-					caller.sixteenbitparam2[i] = uint16(cpu.registerB)
-					break
-				case 1:
-					caller.sixteenbitparam2[i] = uint16(cpu.registerC)
-					break
-				case 2:
-					caller.sixteenbitparam2[i] = uint16(cpu.registerD)
-					break
-				case 3:
-					caller.sixteenbitparam2[i] = uint16(cpu.registerE)
-					break
-				case 4:
-					caller.sixteenbitparam2[i] = uint16(cpu.registerH)
-					break
-				case 5:
-					caller.sixteenbitparam2[i] = uint16(cpu.registerL)
-					break
-				case 6:
-					caller.sixteenbitparam2[i] = uint16(memory[cpu.registerHL])
-					break
-				case 7:
-					caller.sixteenbitparam2[i] = uint16(cpu.registerA)
-					break
-				}
-
-				if i < 0x48 || (i >= 0x80 && i < 0x88) || (i >= 0xC0 && i < 0xC8) {
-					caller.sixteenbitparam1[i] = 0
-				} else if i < 0x50 || (i >= 0x88 && i < 0x90) || (i >= 0xC8 && i < 0xD0) {
-					caller.sixteenbitparam1[i] = 1
-				} else if i < 0x58 || (i >= 0x90 && i < 0x98) || (i >= 0xD0 && i < 0xD8) {
-					caller.sixteenbitparam1[i] = 2
-				} else if i < 0x60 || (i >= 0x98 && i < 0xA0) || (i >= 0xD8 && i < 0xE0) {
-					caller.sixteenbitparam1[i] = 3
-				} else if i < 0x68 || (i >= 0xA0 && i < 0xA8) || (i >= 0xE0 && i < 0xE8) {
-					caller.sixteenbitparam1[i] = 4
-				} else if i < 0x70 || (i >= 0xA8 && i < 0xB0) || (i >= 0xE8 && i < 0xF0) {
-					caller.sixteenbitparam1[i] = 5
-				} else if i < 0x78 || (i >= 0xB0 && i < 0xB8) || (i >= 0xF0 && i < 0xF8) {
-					caller.sixteenbitparam1[i] = 6
-				} else if i < 0x80 || (i >= 0xB8 && i < 0xC0) || (i >= 0xF8 && i <= 0xFF) {
-					caller.sixteenbitparam1[i] = 7
-				}
+			if i < 0x48 || (i >= 0x80 && i < 0x88) || (i >= 0xC0 && i < 0xC8) {
+				caller.sixteenbitparam1[i] = 0
+			} else if i < 0x50 || (i >= 0x88 && i < 0x90) || (i >= 0xC8 && i < 0xD0) {
+				caller.sixteenbitparam1[i] = 1
+			} else if i < 0x58 || (i >= 0x90 && i < 0x98) || (i >= 0xD0 && i < 0xD8) {
+				caller.sixteenbitparam1[i] = 2
+			} else if i < 0x60 || (i >= 0x98 && i < 0xA0) || (i >= 0xD8 && i < 0xE0) {
+				caller.sixteenbitparam1[i] = 3
+			} else if i < 0x68 || (i >= 0xA0 && i < 0xA8) || (i >= 0xE0 && i < 0xE8) {
+				caller.sixteenbitparam1[i] = 4
+			} else if i < 0x70 || (i >= 0xA8 && i < 0xB0) || (i >= 0xE8 && i < 0xF0) {
+				caller.sixteenbitparam1[i] = 5
+			} else if i < 0x78 || (i >= 0xB0 && i < 0xB8) || (i >= 0xF0 && i < 0xF8) {
+				caller.sixteenbitparam1[i] = 6
+			} else if i < 0x80 || (i >= 0xB8 && i < 0xC0) || (i >= 0xF8 && i <= 0xFF) {
+				caller.sixteenbitparam1[i] = 7
 			}
 		}
+		// Sixteen bit callers end here
 
 		if i <= 0x3B && (i%16 == 1 || i%16 == 9 || i%16 == 3 || i%16 == 11) {
 
@@ -837,13 +838,13 @@ func INC16b(nn uint16, none uint16, cpu *CPU, memory []uint8) {
 func DEC(n uint16, none uint16, cpu *CPU, memory []uint8) {
 	temp := n - 1
 	if temp&0xFF == 0 {
-		cpu.registerF = cpu.registerF | 0b10000000
+		SetZFlag(cpu)
 	}
 	if (cpu.registerF & 0b01000000) != 0b01000000 {
-		cpu.registerF = cpu.registerF | 0b01000000
+		SetNFlag(cpu)
 	}
 	if (n&0b111)-(temp&0b111) >= 0 {
-		cpu.registerF = cpu.registerF | 0b00100000
+		SetHFlag(cpu)
 	}
 	n--
 }
