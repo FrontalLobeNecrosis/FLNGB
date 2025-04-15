@@ -20,7 +20,7 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 
 	for i := 0; i <= 255; i++ {
 
-		if i < 0x20 {
+		if i < 0x40 {
 			caller.eightbitparam2[i] = 0
 			if i < 0x08 {
 				caller.sixteenBitFuncArray[i] = RLCn
@@ -30,33 +30,41 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 				caller.sixteenBitFuncArray[i] = RLn
 			} else if i < 0x20 {
 				caller.sixteenBitFuncArray[i] = RRn
+			} else if i < 0x28 {
+				caller.sixteenBitFuncArray[i] = SLA
+			} else if i < 0x30 {
+				caller.sixteenBitFuncArray[i] = SRA
+			} else if i < 0x38 {
+				caller.sixteenBitFuncArray[i] = SWAP
+			} else if i < 0x40 {
+				caller.sixteenBitFuncArray[i] = SRL
 			}
-			remainder := i % 8
 
+			remainder := i % 8
 			switch remainder {
 			case 0:
-				caller.eightbitparam1[i] = uint16(cpu.registerB)
+				caller.sixteenbitparam1[i] = uint16(cpu.registerB)
 				break
 			case 1:
-				caller.eightbitparam1[i] = uint16(cpu.registerC)
+				caller.sixteenbitparam1[i] = uint16(cpu.registerC)
 				break
 			case 2:
-				caller.eightbitparam1[i] = uint16(cpu.registerD)
+				caller.sixteenbitparam1[i] = uint16(cpu.registerD)
 				break
 			case 3:
-				caller.eightbitparam1[i] = uint16(cpu.registerE)
+				caller.sixteenbitparam1[i] = uint16(cpu.registerE)
 				break
 			case 4:
-				caller.eightbitparam1[i] = uint16(cpu.registerH)
+				caller.sixteenbitparam1[i] = uint16(cpu.registerH)
 				break
 			case 5:
-				caller.eightbitparam1[i] = uint16(cpu.registerL)
+				caller.sixteenbitparam1[i] = uint16(cpu.registerL)
 				break
 			case 6:
-				caller.eightbitparam1[i] = uint16(memory[cpu.registerHL])
+				caller.sixteenbitparam1[i] = uint16(memory[cpu.registerHL])
 				break
 			case 7:
-				caller.eightbitparam1[i] = uint16(cpu.registerA)
+				caller.sixteenbitparam1[i] = uint16(cpu.registerA)
 				break
 			}
 		}
@@ -121,34 +129,6 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 				caller.eightbitparam1[i] = uint16(cpu.registerL)
 			} else if i <= 0x38 {
 				caller.eightbitparam1[i] = uint16(memory[cpu.registerHL])
-				caller.sixteenBitFuncArray[i] = SWAP
-				caller.sixteenbitparam2[i] = 0
-				switch remainder {
-				case 0:
-					caller.sixteenbitparam1[i] = uint16(cpu.registerB)
-					break
-				case 1:
-					caller.sixteenbitparam1[i] = uint16(cpu.registerC)
-					break
-				case 2:
-					caller.sixteenbitparam1[i] = uint16(cpu.registerD)
-					break
-				case 3:
-					caller.sixteenbitparam1[i] = uint16(cpu.registerE)
-					break
-				case 4:
-					caller.sixteenbitparam1[i] = uint16(cpu.registerH)
-					break
-				case 5:
-					caller.sixteenbitparam1[i] = uint16(cpu.registerL)
-					break
-				case 6:
-					caller.sixteenbitparam1[i] = uint16(memory[cpu.registerHL])
-					break
-				case 7:
-					caller.sixteenbitparam1[i] = uint16(cpu.registerA)
-					break
-				}
 			} else {
 				caller.eightbitparam1[i] = uint16(cpu.registerA)
 			}
@@ -1237,6 +1217,97 @@ func RRn(n uint16, none uint16, cpu *CPU, memory []uint8) {
 	cpu.cycles += 8
 }
 
+// Shifts a register or a value in memory
+// left into carry, LSB of is set to 0
+//
+// params:
+//
+//	n, a register or spot in memory
+//	none, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func SLA(n uint16, none uint16, cpu *CPU, memory []uint8) {
+	carry := uint8(n) & 0b10000000
+	n = (n << 1) & 0xFF
+	if n == 0 {
+		SetZFlag(cpu)
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		ResetNFlag(cpu)
+	}
+	if (cpu.registerF & 0b00100000) == 0b00100000 {
+		ResetHFlag(cpu)
+	}
+	if carry > 0 {
+		SetCFlag(cpu)
+	} else {
+		if (cpu.registerF & 0b0001000) == 0b00010000 {
+			ResetCFlag(cpu)
+		}
+	}
+}
+
+// Shifts a register or a value in memory
+// right into carry, MSB doesn't change
+//
+// params:
+//
+//	n, a register or spot in memory
+//	none, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func SRA(n uint16, none uint16, cpu *CPU, memory []uint8) {
+	MSB := uint8(n) & 0b10000000
+	carry := uint8(n) & 1
+	n = (n >> 1) & 0xFF
+	n = n | uint16(MSB)
+	if n == 0 {
+		SetZFlag(cpu)
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		ResetNFlag(cpu)
+	}
+	if (cpu.registerF & 0b00100000) == 0b00100000 {
+		ResetHFlag(cpu)
+	}
+	if carry > 0 {
+		SetCFlag(cpu)
+	} else {
+		if (cpu.registerF & 0b0001000) == 0b00010000 {
+			ResetCFlag(cpu)
+		}
+	}
+}
+
+// Shifts a register or a value in memory
+// right into carry, MSB is set to 0
+// params:
+//
+//	n, a register or spot in memory
+//	none, not used in this function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func SRL(n uint16, none uint16, cpu *CPU, memory []uint8) {
+	carry := uint8(n) & 1
+	n = (n >> 1) & 0xFF
+	if n == 0 {
+		SetZFlag(cpu)
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		ResetNFlag(cpu)
+	}
+	if (cpu.registerF & 0b00100000) == 0b00100000 {
+		ResetHFlag(cpu)
+	}
+	if carry > 0 {
+		SetCFlag(cpu)
+	} else {
+		if (cpu.registerF & 0b0001000) == 0b00010000 {
+			ResetCFlag(cpu)
+		}
+	}
+}
+
 // Takes in an opcode and runs the function with appropriate params associated with that code
 //
 // params:
@@ -1262,9 +1333,9 @@ func ReadOpcode(opcode uint32, cpu *CPU, memory []uint8) {
 	caller := NewCaller(cpu, memory, immediateValue)
 
 	if (opcode > 255) && ((opcode & 0xCB00) == 0xCB00) {
-		function := caller.sixteenBitFuncArray[opcode-0xCB00]
-		first := caller.sixteenbitparam1[opcode-0xCB00]
-		second := caller.sixteenbitparam2[opcode-0xCB00]
+		function := caller.sixteenBitFuncArray[opcode^0xCB00]
+		first := caller.sixteenbitparam1[opcode^0xCB00]
+		second := caller.sixteenbitparam2[opcode^0xCB00]
 		function(first, second, cpu, memory)
 	} else {
 		function := caller.eightBitFuncArray[opcode]
