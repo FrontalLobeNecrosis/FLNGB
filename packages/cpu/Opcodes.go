@@ -38,34 +38,83 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 				caller.sixteenBitFuncArray[i] = SWAP
 			} else if i < 0x40 {
 				caller.sixteenBitFuncArray[i] = SRL
+			} else if i < 0x80 {
+				caller.sixteenBitFuncArray[i] = BIT
 			}
 
 			remainder := i % 8
-			switch remainder {
-			case 0:
-				caller.sixteenbitparam1[i] = uint16(cpu.registerB)
-				break
-			case 1:
-				caller.sixteenbitparam1[i] = uint16(cpu.registerC)
-				break
-			case 2:
-				caller.sixteenbitparam1[i] = uint16(cpu.registerD)
-				break
-			case 3:
-				caller.sixteenbitparam1[i] = uint16(cpu.registerE)
-				break
-			case 4:
-				caller.sixteenbitparam1[i] = uint16(cpu.registerH)
-				break
-			case 5:
-				caller.sixteenbitparam1[i] = uint16(cpu.registerL)
-				break
-			case 6:
-				caller.sixteenbitparam1[i] = uint16(memory[cpu.registerHL])
-				break
-			case 7:
-				caller.sixteenbitparam1[i] = uint16(cpu.registerA)
-				break
+			if i < 0x40 {
+				switch remainder {
+				case 0:
+					caller.sixteenbitparam1[i] = uint16(cpu.registerB)
+					break
+				case 1:
+					caller.sixteenbitparam1[i] = uint16(cpu.registerC)
+					break
+				case 2:
+					caller.sixteenbitparam1[i] = uint16(cpu.registerD)
+					break
+				case 3:
+					caller.sixteenbitparam1[i] = uint16(cpu.registerE)
+					break
+				case 4:
+					caller.sixteenbitparam1[i] = uint16(cpu.registerH)
+					break
+				case 5:
+					caller.sixteenbitparam1[i] = uint16(cpu.registerL)
+					break
+				case 6:
+					caller.sixteenbitparam1[i] = uint16(memory[cpu.registerHL])
+					break
+				case 7:
+					caller.sixteenbitparam1[i] = uint16(cpu.registerA)
+					break
+				}
+			} else {
+				switch remainder {
+				case 0:
+					caller.sixteenbitparam2[i] = uint16(cpu.registerB)
+					break
+				case 1:
+					caller.sixteenbitparam2[i] = uint16(cpu.registerC)
+					break
+				case 2:
+					caller.sixteenbitparam2[i] = uint16(cpu.registerD)
+					break
+				case 3:
+					caller.sixteenbitparam2[i] = uint16(cpu.registerE)
+					break
+				case 4:
+					caller.sixteenbitparam2[i] = uint16(cpu.registerH)
+					break
+				case 5:
+					caller.sixteenbitparam2[i] = uint16(cpu.registerL)
+					break
+				case 6:
+					caller.sixteenbitparam2[i] = uint16(memory[cpu.registerHL])
+					break
+				case 7:
+					caller.sixteenbitparam2[i] = uint16(cpu.registerA)
+					break
+				}
+
+				if i < 0x48 || (i >= 0x80 && i < 0x88) || (i >= 0xC0 && i < 0xC8) {
+					caller.sixteenbitparam1[i] = 0
+				} else if i < 0x50 || (i >= 0x88 && i < 0x90) || (i >= 0xC8 && i < 0xD0) {
+					caller.sixteenbitparam1[i] = 1
+				} else if i < 0x58 || (i >= 0x90 && i < 0x98) || (i >= 0xD0 && i < 0xD8) {
+					caller.sixteenbitparam1[i] = 2
+				} else if i < 0x60 || (i >= 0x98 && i < 0xA0) || (i >= 0xD8 && i < 0xE0) {
+					caller.sixteenbitparam1[i] = 3
+				} else if i < 0x68 || (i >= 0xA0 && i < 0xA8) || (i >= 0xE0 && i < 0xE8) {
+					caller.sixteenbitparam1[i] = 4
+				} else if i < 0x70 || (i >= 0xA8 && i < 0xB0) || (i >= 0xE8 && i < 0xF0) {
+					caller.sixteenbitparam1[i] = 5
+				} else if i < 0x78 || (i >= 0xB0 && i < 0xB8) || (i >= 0xF0 && i < 0xF8) {
+					caller.sixteenbitparam1[i] = 6
+				} else if i < 0x80 || (i >= 0xB8 && i < 0xC0) || (i >= 0xF8 && i <= 0xFF) {
+					caller.sixteenbitparam1[i] = 7
+				}
 			}
 		}
 
@@ -1277,6 +1326,43 @@ func SRA(n uint16, none uint16, cpu *CPU, memory []uint8) {
 			ResetCFlag(cpu)
 		}
 	}
+}
+
+func BIT(b uint16, r uint16, cpu *CPU, memory []uint8) {
+	var bit uint8
+	switch b {
+	case 0:
+		bit = 0b00000001
+		break
+	case 1:
+		bit = 0b00000010
+		break
+	case 2:
+		bit = 0b00000100
+		break
+	case 3:
+		bit = 0b00001000
+		break
+	case 4:
+		bit = 0b00010000
+		break
+	case 5:
+		bit = 0b00100000
+		break
+	case 6:
+		bit = 0b01000000
+		break
+	case 7:
+		bit = 0b10000000
+		break
+	}
+	if (r & uint16(bit)) == 0 {
+		SetZFlag(cpu)
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		ResetNFlag(cpu)
+	}
+	SetHFlag(cpu)
 }
 
 // Shifts a register or a value in memory
