@@ -385,6 +385,11 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = 0
 			break
+		case 0x18:
+			caller.eightBitFuncArray[i] = JR
+			caller.eightbitparam1[i] = immediateValue
+			caller.eightbitparam2[i] = immediateValue
+			break
 		case 0x1A:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
@@ -395,11 +400,21 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = 0
 			break
+		case 0x20:
+			caller.eightBitFuncArray[i] = JRcc
+			caller.eightbitparam1[i] = 1
+			caller.eightbitparam2[i] = immediateValue
+			break
 		case 0x22:
 			// TODO: Fix the way the memory and HL register is accessed and updated
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(GetMemoryAndIncrement(memory, &cpu.registerHL))
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
+			break
+		case 0x28:
+			caller.eightBitFuncArray[i] = JRcc
+			caller.eightbitparam1[i] = 2
+			caller.eightbitparam2[i] = immediateValue
 			break
 		case 0x2A:
 			// TODO: Fix the way the memory and HL register is accessed and updated
@@ -410,6 +425,11 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 		case 0x2F:
 			caller.eightBitFuncArray[i] = CPL
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
+			caller.eightbitparam2[i] = immediateValue
+			break
+		case 0x30:
+			caller.eightBitFuncArray[i] = JRcc
+			caller.eightbitparam1[i] = 3
 			caller.eightbitparam2[i] = immediateValue
 			break
 		case 0x32:
@@ -423,6 +443,11 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam1[i] = immediateValue
 			caller.eightbitparam2[i] = immediateValue
 			break
+		case 0x38:
+			caller.eightBitFuncArray[i] = JRcc
+			caller.eightbitparam1[i] = 4
+			caller.eightbitparam2[i] = immediateValue
+			break
 		case 0x3A:
 			// TODO: Fix the way the memory and HL register is accessed and updated
 			caller.eightBitFuncArray[i] = LDr
@@ -432,6 +457,31 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 		case 0x3F:
 			caller.eightBitFuncArray[i] = CCF
 			caller.eightbitparam1[i] = immediateValue
+			caller.eightbitparam2[i] = immediateValue
+			break
+		case 0xC2:
+			caller.eightBitFuncArray[i] = JPcc
+			caller.eightbitparam1[i] = 1
+			caller.eightbitparam2[i] = immediateValue
+			break
+		case 0xC3:
+			caller.eightBitFuncArray[i] = JP
+			caller.eightbitparam1[i] = immediateValue
+			caller.eightbitparam2[i] = immediateValue
+			break
+		case 0xCA:
+			caller.eightBitFuncArray[i] = JPcc
+			caller.eightbitparam1[i] = 2
+			caller.eightbitparam2[i] = immediateValue
+			break
+		case 0xD2:
+			caller.eightBitFuncArray[i] = JPcc
+			caller.eightbitparam1[i] = 3
+			caller.eightbitparam2[i] = immediateValue
+			break
+		case 0xDA:
+			caller.eightBitFuncArray[i] = JPcc
+			caller.eightbitparam1[i] = 4
 			caller.eightbitparam2[i] = immediateValue
 			break
 		case 0xE0:
@@ -448,6 +498,11 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightBitFuncArray[i] = ADDSP
 			caller.eightbitparam1[i] = uint16(cpu.registerSP)
 			caller.eightbitparam2[i] = uint16(immediateValue)
+		case 0xE9:
+			caller.eightBitFuncArray[i] = JPHL
+			caller.eightbitparam1[i] = cpu.registerHL
+			caller.eightbitparam2[i] = immediateValue
+			break
 		case 0xEA:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(memory[immediateValue])
@@ -661,8 +716,8 @@ func ADDSP(SP uint16, n uint16, cpu *CPU, memory []uint8) {
 // params:
 //
 //	A, arithmitic register (register A)
-//	n, a value to be added to arithmitic register, can be value from memory,
-//		   other registers, or immediate value
+//	n, a value to be subtracted from arithmitic register,
+//		can be value from memory, other registers, or immediate value
 //	cpu, CPU struct to edit flag register (register F)
 //	memory, an array of 8 bit values with the size of 0xFFFF
 func SUB(A uint16, n uint16, cpu *CPU, memory []uint8) {
@@ -1447,7 +1502,7 @@ func SET(b uint16, r uint16, cpu *CPU, memory []uint8) {
 	r = r | uint16(bit)
 }
 
-// TResets a bit in a register or value in memory
+// Resets a bit in a register or value in memory
 //
 // params:
 //
@@ -1486,6 +1541,137 @@ func RES(b uint16, r uint16, cpu *CPU, memory []uint8) {
 	if (r & uint16(bit)) > 0 {
 		r = r ^ uint16(bit)
 	}
+}
+
+// Jumps to memory address pointed to by an immediate value
+//
+// params:
+//
+//	nn, 16 bit immediate value
+//	none, not used in function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func JP(nn uint16, none uint16, cpu *CPU, memory []uint8) {
+	cpu.registerPC = nn
+	cpu.cycles += 12
+}
+
+// Jumps to memory address pointed to by an immediate
+// value if certain conditions are true
+//
+// params:
+//
+//	cc, condition to check
+//	nn, 16 bit immediate value
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func JPcc(cc uint16, nn uint16, cpu *CPU, memory []uint8) {
+	switch cc {
+	case 1:
+		if !IsZFlagSet(cpu) {
+			cpu.registerPC = nn
+		}
+		break
+	case 2:
+		if IsZFlagSet(cpu) {
+			cpu.registerPC = nn
+		}
+		break
+	case 3:
+		if !IsCFlagSet(cpu) {
+			cpu.registerPC = nn
+		}
+		break
+	case 4:
+		if IsCFlagSet(cpu) {
+			cpu.registerPC = nn
+		}
+		break
+	}
+	cpu.cycles += 12
+}
+
+// Jumps to memory address pointed to by register HL
+//
+// params:
+//
+//	r, register HL
+//	none, not used in function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func JPHL(r uint16, none uint16, cpu *CPU, memory []uint8) {
+	cpu.registerPC = r
+	cpu.cycles += 4
+}
+
+// Jumps to memory address by adding a signed immediate
+// value to current address
+//
+// params:
+//
+//	n, 8 bit signed immediate value
+//	none, not used in function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func JR(n uint16, none uint16, cpu *CPU, memory []uint8) {
+	if int8(n) >= 0 {
+		cpu.registerPC += n
+	} else {
+		cpu.registerPC -= (n - 1) ^ 0b11111111
+	}
+	cpu.cycles += 8
+}
+
+// Jumps to memory address pointed to by a signed immediate
+// value if certain conditions are true
+//
+// params:
+//
+//	cc, condition to check
+//	nn, 8 bit signed immediate value
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func JRcc(cc uint16, n uint16, cpu *CPU, memory []uint8) {
+	cpu.registerPC += n
+	switch cc {
+	case 1:
+		if !IsZFlagSet(cpu) {
+			if int8(n) >= 0 {
+				cpu.registerPC += n
+			} else {
+				cpu.registerPC -= (n - 1) ^ 0b11111111
+			}
+		}
+		break
+	case 2:
+		if IsZFlagSet(cpu) {
+			if int8(n) >= 0 {
+				cpu.registerPC += n
+			} else {
+				cpu.registerPC -= (n - 1) ^ 0b11111111
+			}
+		}
+		break
+	case 3:
+		if !IsCFlagSet(cpu) {
+			if int8(n) >= 0 {
+				cpu.registerPC += n
+			} else {
+				cpu.registerPC -= (n - 1) ^ 0b11111111
+			}
+		}
+		break
+	case 4:
+		if IsCFlagSet(cpu) {
+			if int8(n) >= 0 {
+				cpu.registerPC += n
+			} else {
+				cpu.registerPC -= (n - 1) ^ 0b11111111
+			}
+		}
+		break
+	}
+	cpu.cycles += 8
 }
 
 // Takes in an opcode and runs the function with appropriate params associated with that code
