@@ -416,6 +416,11 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam1[i] = 2
 			caller.eightbitparam2[i] = immediateValue
 			break
+		case 0x76:
+			caller.eightBitFuncArray[i] = HALT
+			caller.eightbitparam1[i] = 0
+			caller.eightbitparam2[i] = 0
+			break
 		case 0x2A:
 			// TODO: Fix the way the memory and HL register is accessed and updated
 			caller.eightBitFuncArray[i] = LDr
@@ -474,6 +479,11 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam1[i] = 1
 			caller.eightbitparam2[i] = immediateValue
 			break
+		case 0xC7:
+			caller.eightBitFuncArray[i] = RST
+			caller.eightbitparam1[i] = 0x00
+			caller.eightbitparam2[i] = immediateValue
+			break
 		case 0xCA:
 			caller.eightBitFuncArray[i] = JPcc
 			caller.eightbitparam1[i] = 2
@@ -489,6 +499,11 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam1[i] = immediateValue
 			caller.eightbitparam2[i] = immediateValue
 			break
+		case 0xCF:
+			caller.eightBitFuncArray[i] = RST
+			caller.eightbitparam1[i] = 0x08
+			caller.eightbitparam2[i] = immediateValue
+			break
 		case 0xD2:
 			caller.eightBitFuncArray[i] = JPcc
 			caller.eightbitparam1[i] = 3
@@ -497,6 +512,11 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 		case 0xD4:
 			caller.eightBitFuncArray[i] = CALLcc
 			caller.eightbitparam1[i] = 3
+			caller.eightbitparam2[i] = immediateValue
+			break
+		case 0xD7:
+			caller.eightBitFuncArray[i] = RST
+			caller.eightbitparam1[i] = 0x10
 			caller.eightbitparam2[i] = immediateValue
 			break
 		case 0xDA:
@@ -509,6 +529,11 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam1[i] = 4
 			caller.eightbitparam2[i] = immediateValue
 			break
+		case 0xDF:
+			caller.eightBitFuncArray[i] = RST
+			caller.eightbitparam1[i] = 0x18
+			caller.eightbitparam2[i] = immediateValue
+			break
 		case 0xE0:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(memory[0xFF00+immediateValue])
@@ -518,6 +543,11 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(memory[0xFF00+uint16(cpu.registerC)])
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
+			break
+		case 0xE7:
+			caller.eightBitFuncArray[i] = RST
+			caller.eightbitparam1[i] = 0x20
+			caller.eightbitparam2[i] = immediateValue
 			break
 		case 0xE8:
 			caller.eightBitFuncArray[i] = ADDSP
@@ -533,6 +563,11 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam1[i] = uint16(memory[immediateValue])
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
 			break
+		case 0xEF:
+			caller.eightBitFuncArray[i] = RST
+			caller.eightbitparam1[i] = 0x28
+			caller.eightbitparam2[i] = immediateValue
+			break
 		case 0xF0:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(memory[0xFF00+immediateValue])
@@ -541,6 +576,16 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = uint16(memory[0xFF00+uint16(cpu.registerC)])
+			break
+		case 0xF3:
+			caller.eightBitFuncArray[i] = DI
+			caller.eightbitparam1[i] = 0
+			caller.eightbitparam2[i] = 0
+			break
+		case 0xF7:
+			caller.eightBitFuncArray[i] = RST
+			caller.eightbitparam1[i] = 0x30
+			caller.eightbitparam2[i] = immediateValue
 			break
 		case 0xF8:
 			caller.eightBitFuncArray[i] = LDFlag
@@ -557,24 +602,16 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = uint16(memory[immediateValue])
 			break
-		}
-
-		if i == 0x76 {
-			caller.eightBitFuncArray[i] = HALT
-			caller.eightbitparam1[i] = 0
-			caller.eightbitparam2[i] = 0
-		}
-
-		if i == 0xF3 {
-			caller.eightBitFuncArray[i] = DI
-			caller.eightbitparam1[i] = 0
-			caller.eightbitparam2[i] = 0
-		}
-
-		if i == 0xFB {
+		case 0xFB:
 			caller.eightBitFuncArray[i] = EI
 			caller.eightbitparam1[i] = 0
 			caller.eightbitparam2[i] = 0
+			break
+		case 0xFF:
+			caller.eightBitFuncArray[i] = RST
+			caller.eightbitparam1[i] = 0x38
+			caller.eightbitparam2[i] = immediateValue
+			break
 		}
 
 	}
@@ -643,7 +680,7 @@ func LDFlag(r uint16, value uint16, cpu *CPU, memory []uint8) {
 // params:
 //
 //	r, SP register (stack pointer)
-//	value, value to be pushed onto the stack. either paired register or immediate value
+//	value, value to be pushed onto the stack, either paired register or immediate value
 //	memory, an array of 8 bit values with the size of 0xFFFF, will store the pushed value
 func PUSH(r uint16, value uint16, cpu *CPU, memory []uint8) {
 	r--
@@ -1729,24 +1766,46 @@ func CALLcc(cc uint16, nn uint16, cpu *CPU, memory []uint8) {
 	case 1:
 		if !IsZFlagSet(cpu) {
 			CALL(nn, nn, cpu, memory)
+		} else {
+			cpu.cycles += 12
 		}
 		break
 	case 2:
 		if IsZFlagSet(cpu) {
 			CALL(nn, nn, cpu, memory)
+		} else {
+			cpu.cycles += 12
 		}
 		break
 	case 3:
 		if !IsCFlagSet(cpu) {
 			CALL(nn, nn, cpu, memory)
+		} else {
+			cpu.cycles += 12
 		}
 		break
 	case 4:
 		if IsCFlagSet(cpu) {
 			CALL(nn, nn, cpu, memory)
+		} else {
+			cpu.cycles += 12
 		}
 		break
 	}
+}
+
+// Push current address onto stack and then jumps to address at n
+//
+// params:
+//
+//	n, can be 0, 8, 10, 18, 20, 28, 30, or 38
+//	none, not used in function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func RST(n uint16, none uint16, cpu *CPU, memory []uint8) {
+	PUSH(cpu.registerSP, cpu.registerPC, cpu, memory)
+	cpu.registerPC = n
+	cpu.cycles += 32
 }
 
 // Takes in an opcode and runs the function with appropriate params associated with that code
