@@ -172,3 +172,23 @@ func SetCFlag(cpu *CPU) {
 func ResetCFlag(cpu *CPU) {
 	cpu.registerF = cpu.registerF ^ 0b00010000
 }
+
+// Checks if zero flag is set
+func IsZFlagSet(cpu *CPU) bool {
+	return (cpu.registerF & 0b10000000) == 0b10000000
+}
+
+// Checks if subtraction flag is set
+func IsNFlagSet(cpu *CPU) bool {
+	return (cpu.registerF & 0b01000000) == 0b01000000
+}
+
+// Checks if half carry flag is set
+func IsHFlagSet(cpu *CPU) bool {
+	return (cpu.registerF & 0b00100000) == 0b00100000
+}
+
+// Checks if carry flag is set
+func IsCFlagSet(cpu *CPU) bool {
+	return (cpu.registerF & 0b00010000) == 0b00010000
+}
