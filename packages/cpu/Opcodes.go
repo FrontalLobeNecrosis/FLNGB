@@ -51,55 +51,55 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 		if i < 0x40 {
 			switch remainder {
 			case 0:
-				caller.sixteenbitparam1[i] = uint16(cpu.registerB)
+				caller.sixteenbitparam1[i] = cpu.registerB
 				break
 			case 1:
-				caller.sixteenbitparam1[i] = uint16(cpu.registerC)
+				caller.sixteenbitparam1[i] = cpu.registerC
 				break
 			case 2:
-				caller.sixteenbitparam1[i] = uint16(cpu.registerD)
+				caller.sixteenbitparam1[i] = cpu.registerD
 				break
 			case 3:
-				caller.sixteenbitparam1[i] = uint16(cpu.registerE)
+				caller.sixteenbitparam1[i] = cpu.registerE
 				break
 			case 4:
-				caller.sixteenbitparam1[i] = uint16(cpu.registerH)
+				caller.sixteenbitparam1[i] = cpu.registerH
 				break
 			case 5:
-				caller.sixteenbitparam1[i] = uint16(cpu.registerL)
+				caller.sixteenbitparam1[i] = cpu.registerL
 				break
 			case 6:
 				caller.sixteenbitparam1[i] = uint16(memory[cpu.registerHL])
 				break
 			case 7:
-				caller.sixteenbitparam1[i] = uint16(cpu.registerA)
+				caller.sixteenbitparam1[i] = cpu.registerA
 				break
 			}
 		} else {
 			switch remainder {
 			case 0:
-				caller.sixteenbitparam2[i] = uint16(cpu.registerB)
+				caller.sixteenbitparam2[i] = cpu.registerB
 				break
 			case 1:
-				caller.sixteenbitparam2[i] = uint16(cpu.registerC)
+				caller.sixteenbitparam2[i] = cpu.registerC
 				break
 			case 2:
-				caller.sixteenbitparam2[i] = uint16(cpu.registerD)
+				caller.sixteenbitparam2[i] = cpu.registerD
 				break
 			case 3:
-				caller.sixteenbitparam2[i] = uint16(cpu.registerE)
+				caller.sixteenbitparam2[i] = cpu.registerE
 				break
 			case 4:
-				caller.sixteenbitparam2[i] = uint16(cpu.registerH)
+				caller.sixteenbitparam2[i] = cpu.registerH
 				break
 			case 5:
-				caller.sixteenbitparam2[i] = uint16(cpu.registerL)
+				caller.sixteenbitparam2[i] = cpu.registerL
 				break
 			case 6:
 				caller.sixteenbitparam2[i] = uint16(memory[cpu.registerHL])
 				break
 			case 7:
-				caller.sixteenbitparam2[i] = uint16(cpu.registerA)
+				caller.sixteenbitparam2[i] = cpu.registerA
 				break
 			}
 
@@ -170,21 +170,21 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			remainder := i % 8
 			caller.eightbitparam2[i] = immediateValue
 			if i <= 0x8 {
-				caller.eightbitparam1[i] = uint16(cpu.registerB)
+				caller.eightbitparam1[i] = cpu.registerB
 			} else if i <= 0xF {
-				caller.eightbitparam1[i] = uint16(cpu.registerC)
+				caller.eightbitparam1[i] = cpu.registerC
 			} else if i <= 0x18 {
-				caller.eightbitparam1[i] = uint16(cpu.registerD)
+				caller.eightbitparam1[i] = cpu.registerD
 			} else if i <= 0x1F {
-				caller.eightbitparam1[i] = uint16(cpu.registerE)
+				caller.eightbitparam1[i] = cpu.registerE
 			} else if i <= 0x28 {
-				caller.eightbitparam1[i] = uint16(cpu.registerH)
+				caller.eightbitparam1[i] = cpu.registerH
 			} else if i <= 0x2F {
-				caller.eightbitparam1[i] = uint16(cpu.registerL)
+				caller.eightbitparam1[i] = cpu.registerL
 			} else if i <= 0x38 {
-				caller.eightbitparam1[i] = uint16(memory[cpu.registerHL])
+				caller.eightbitparam1[i] = cpu.registerHL
 			} else {
-				caller.eightbitparam1[i] = uint16(cpu.registerA)
+				caller.eightbitparam1[i] = cpu.registerA
 			}
 
 			if remainder == 4 {
@@ -241,104 +241,106 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightBitFuncArray[i] = LDr
 
 			if i >= 0x78 && i <= 0x7F {
-				caller.eightbitparam1[i] = uint16(cpu.registerA)
+				caller.eightbitparam1[i] = cpu.registerA
 			} else if i >= 0x40 && i >= 0x47 {
-				caller.eightbitparam1[i] = uint16(cpu.registerB)
+				caller.eightbitparam1[i] = cpu.registerB
 			} else if i >= 0x48 && i <= 0x4F {
-				caller.eightbitparam1[i] = uint16(cpu.registerC)
+				caller.eightbitparam1[i] = cpu.registerC
 			} else if i >= 0x50 && i <= 0x57 {
-				caller.eightbitparam1[i] = uint16(cpu.registerD)
+				caller.eightbitparam1[i] = cpu.registerD
 			} else if i >= 0x58 && i <= 0x5F {
-				caller.eightbitparam1[i] = uint16(cpu.registerE)
+				caller.eightbitparam1[i] = cpu.registerE
 			} else if i >= 0x60 && i <= 0x67 {
-				caller.eightbitparam1[i] = uint16(cpu.registerH)
+				caller.eightbitparam1[i] = cpu.registerH
 			} else if i >= 0x68 && i <= 0x6F {
-				caller.eightbitparam1[i] = uint16(cpu.registerL)
+				caller.eightbitparam1[i] = cpu.registerL
 			} else if i >= 0x70 && i <= 0x75 {
-				caller.eightbitparam1[i] = uint16(memory[cpu.registerHL])
+				caller.eightbitparam1[i] = cpu.registerHL
 			}
 
 			remainder := i % 8
 
 			switch remainder {
 			case 0:
-				caller.eightbitparam2[i] = uint16(cpu.registerB)
+				caller.eightbitparam2[i] = cpu.registerB
 				break
 			case 1:
-				caller.eightbitparam2[i] = uint16(cpu.registerC)
+				caller.eightbitparam2[i] = cpu.registerC
 				break
 			case 2:
-				caller.eightbitparam2[i] = uint16(cpu.registerD)
+				caller.eightbitparam2[i] = cpu.registerD
 				break
 			case 3:
-				caller.eightbitparam2[i] = uint16(cpu.registerE)
+				caller.eightbitparam2[i] = cpu.registerE
 				break
 			case 4:
-				caller.eightbitparam2[i] = uint16(cpu.registerH)
+				caller.eightbitparam2[i] = cpu.registerH
 				break
 			case 5:
-				caller.eightbitparam2[i] = uint16(cpu.registerL)
+				caller.eightbitparam2[i] = cpu.registerL
 				break
 			case 6:
-				caller.eightbitparam2[i] = uint16(memory[cpu.registerHL])
+				caller.eightbitparam2[i] = cpu.registerHL
 				break
 			case 7:
-				caller.eightbitparam2[i] = uint16(cpu.registerA)
+				caller.eightbitparam2[i] = cpu.registerA
 				break
 			}
 		}
 
 		if i >= 0x80 && i <= 0xA7 || i == 0xC6 || i == 0xCE || i == 0xD6 ||
 			i == 0xDE || i == 0xE6 || i == 0xEE || i == 0xF6 || i == 0xFE {
-			if i <= 0xB8 || i == 0xFE {
-				caller.eightBitFuncArray[i] = CP
-			} else if i <= 0xB0 || i == 0xF6 {
-				caller.eightBitFuncArray[i] = OR
-			} else if i <= 0xA8 || i == 0xEE {
-				caller.eightBitFuncArray[i] = XOR
+
+			if i <= 0x87 || i == 0xC6 {
+				caller.eightBitFuncArray[i] = ADD
+			} else if i <= 0x8F || i == 0xCE {
+				caller.eightBitFuncArray[i] = ADC
+			} else if i <= 0x97 || i == 0xD6 {
+				caller.eightBitFuncArray[i] = SUB
+			} else if i <= 0x9F || i == 0xDE {
+				caller.eightBitFuncArray[i] = SUC
 			} else if i <= 0xA0 || i == 0xE6 {
 				caller.eightBitFuncArray[i] = AND
-			} else if i <= 0x8F || i == 0xC6 || i == 0xCE {
-				caller.eightBitFuncArray[i] = ADD
-			} else {
-				caller.eightBitFuncArray[i] = SUB
+			} else if i <= 0xA8 || i == 0xEE {
+				caller.eightBitFuncArray[i] = XOR
+			} else if i <= 0xB0 || i == 0xF6 {
+				caller.eightBitFuncArray[i] = OR
+			} else if i <= 0xB8 || i == 0xFE {
+				caller.eightBitFuncArray[i] = CP
 			}
-			caller.eightbitparam1[i] = uint16(cpu.registerA)
 
-			var carry uint8 = 0
-			if i > 0x87 && i < 0x90 || i > 0x97 && i < 0xA0 || i == 0xCE || i == 0xDE {
-				carry = cpu.registerF & 0b00010000
-			}
+			caller.eightbitparam1[i] = cpu.registerA
+
 			remainder := i % 8
 
 			switch remainder {
 			case 0:
-				caller.eightbitparam2[i] = uint16(cpu.registerB + carry)
+				caller.eightbitparam2[i] = cpu.registerB
 				break
 			case 1:
-				caller.eightbitparam2[i] = uint16(cpu.registerC + carry)
+				caller.eightbitparam2[i] = cpu.registerC
 				break
 			case 2:
-				caller.eightbitparam2[i] = uint16(cpu.registerD + carry)
+				caller.eightbitparam2[i] = cpu.registerD
 				break
 			case 3:
-				caller.eightbitparam2[i] = uint16(cpu.registerE + carry)
+				caller.eightbitparam2[i] = cpu.registerE
 				break
 			case 4:
-				caller.eightbitparam2[i] = uint16(cpu.registerH + carry)
+				caller.eightbitparam2[i] = cpu.registerH
 				break
 			case 5:
-				caller.eightbitparam2[i] = uint16(cpu.registerL + carry)
+				caller.eightbitparam2[i] = cpu.registerL
 				break
 			case 6:
 				if i >= 0xC6 {
-					caller.eightbitparam2[i] = immediateValue + uint16(carry)
+					caller.eightbitparam2[i] = immediateValue
 				} else {
-					caller.eightbitparam2[i] = uint16(memory[cpu.registerHL] + carry)
+					caller.eightbitparam2[i] = cpu.registerHL
 				}
 				break
 			case 7:
-				caller.eightbitparam2[i] = uint16(cpu.registerA + carry)
+				caller.eightbitparam2[i] = cpu.registerA
 				break
 			}
 		}
@@ -406,9 +408,8 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam2[i] = immediateValue
 			break
 		case 0x22:
-			// TODO: Fix the way the memory and HL register is accessed and updated
-			caller.eightBitFuncArray[i] = LDr
-			caller.eightbitparam1[i] = uint16(GetMemoryAndIncrement(memory, &cpu.registerHL))
+			caller.eightBitFuncArray[i] = LDHLI
+			caller.eightbitparam1[i] = cpu.registerHL
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
 			break
 		case 0x28:
@@ -416,16 +417,10 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam1[i] = 2
 			caller.eightbitparam2[i] = immediateValue
 			break
-		case 0x76:
-			caller.eightBitFuncArray[i] = HALT
-			caller.eightbitparam1[i] = 0
-			caller.eightbitparam2[i] = 0
-			break
 		case 0x2A:
-			// TODO: Fix the way the memory and HL register is accessed and updated
-			caller.eightBitFuncArray[i] = LDr
+			caller.eightBitFuncArray[i] = LDHLI
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
-			caller.eightbitparam2[i] = uint16(GetMemoryAndIncrement(memory, &cpu.registerHL))
+			caller.eightbitparam2[i] = cpu.registerHL
 			break
 		case 0x2F:
 			caller.eightBitFuncArray[i] = CPL
@@ -438,9 +433,8 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam2[i] = immediateValue
 			break
 		case 0x32:
-			// TODO: Fix the way the memory and HL register is accessed and updated
-			caller.eightBitFuncArray[i] = LDr
-			caller.eightbitparam1[i] = uint16(GetMemoryAndDeincrement(memory, &cpu.registerHL))
+			caller.eightBitFuncArray[i] = LDHLD
+			caller.eightbitparam1[i] = cpu.registerHL
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
 			break
 		case 0x37:
@@ -455,14 +449,19 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			break
 		case 0x3A:
 			// TODO: Fix the way the memory and HL register is accessed and updated
-			caller.eightBitFuncArray[i] = LDr
+			caller.eightBitFuncArray[i] = LDHLD
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
-			caller.eightbitparam2[i] = uint16(GetMemoryAndDeincrement(memory, &cpu.registerHL))
+			caller.eightbitparam2[i] = cpu.registerHL
 			break
 		case 0x3F:
 			caller.eightBitFuncArray[i] = CCF
 			caller.eightbitparam1[i] = immediateValue
 			caller.eightbitparam2[i] = immediateValue
+			break
+		case 0x76:
+			caller.eightBitFuncArray[i] = HALT
+			caller.eightbitparam1[i] = 0
+			caller.eightbitparam2[i] = 0
 			break
 		case 0xC0:
 			caller.eightBitFuncArray[i] = RETcc
@@ -668,7 +667,13 @@ func NewCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_function
 //	nn, a register to have a value written to
 //	n, a register, memory addres, or an 8 bit immediate value to write from
 func LDn(nn uint16, n uint16, cpu *CPU, memory []uint8) {
-	nn = n
+	if nn == cpu.registerHL {
+		memory[nn] = uint8(n)
+	} else if n == cpu.registerHL {
+		nn = uint16(memory[n])
+	} else {
+		nn = n
+	}
 }
 
 // LDr loads a value from a register r2 into another register
@@ -679,7 +684,13 @@ func LDn(nn uint16, n uint16, cpu *CPU, memory []uint8) {
 //	r1, a register to write to
 //	r2, a register, memory addres, or an 8 bit immediate value being read from
 func LDr(r1 uint16, r2 uint16, cpu *CPU, memory []uint8) {
-	r1 = r2
+	if r1 == cpu.registerHL {
+		memory[r1] = uint8(r2)
+	} else if r2 == cpu.registerHL {
+		r1 = uint16(memory[r2])
+	} else {
+		r1 = r2
+	}
 }
 
 // LD16b is like the other LD finctions but intended only for use with 16 bit
@@ -691,6 +702,42 @@ func LDr(r1 uint16, r2 uint16, cpu *CPU, memory []uint8) {
 //	value, a paired register or an 16 bit immediate value being read from
 func LD16b(r uint16, value uint16, cpu *CPU, memory []uint8) {
 	r = value
+}
+
+// LDHLD loads a value from register A into memory at the
+// address value in register HL or vice-versa then deincrements HL
+//
+// params:
+//
+//	r1, a register to write to
+//	r2, a register, memory addres, or an 8 bit immediate value being read from
+func LDHLD(r1 uint16, r2 uint16, cpu *CPU, memory []uint8) {
+	if r1 == cpu.registerHL {
+		memory[r1] = uint8(r2)
+		r1--
+	} else {
+		r1 = uint16(memory[r2])
+		r2--
+	}
+	cpu.cycles += 8
+}
+
+// LDHLD loads a value from register A into memory at the
+// address value in register HL or vice-versa then deincrements HL
+//
+// params:
+//
+//	r1, a register to write to
+//	r2, a register, memory addres, or an 8 bit immediate value being read from
+func LDHLI(r1 uint16, r2 uint16, cpu *CPU, memory []uint8) {
+	if r1 == cpu.registerHL {
+		memory[r1] = uint8(r2)
+		r1++
+	} else {
+		r1 = uint16(memory[r2])
+		r2++
+	}
+	cpu.cycles += 8
 }
 
 // LDFlag was made for the spcific case where the flag register needs to be edited,
@@ -713,7 +760,6 @@ func LDFlag(r uint16, value uint16, cpu *CPU, memory []uint8) {
 //	value, value to be pushed onto the stack, either paired register or immediate value
 //	memory, an array of 8 bit values with the size of 0xFFFF, will store the pushed value
 func PUSH(r uint16, value uint16, cpu *CPU, memory []uint8) {
-	r--
 	Write16bToMemory(r, value, memory)
 }
 
@@ -739,7 +785,7 @@ func POP(r1 uint16, r2 uint16, cpu *CPU, memory []uint8) {
 //	memory, an array of 8 bit values with the size of 0xFFFF
 func ADD(A uint16, n uint16, cpu *CPU, memory []uint8) {
 	temp := n
-	if n > 0xFF {
+	if n == cpu.registerHL {
 		temp = uint16(memory[n])
 	}
 	result := A + temp
@@ -749,10 +795,40 @@ func ADD(A uint16, n uint16, cpu *CPU, memory []uint8) {
 	if (cpu.registerF & 0b01000000) == 0b01000000 {
 		cpu.registerF = cpu.registerF ^ 0b01000000
 	}
-	if (A&0b111)+(temp&0b111) >= 0b1000 {
+	if (A&0b1111)+(temp&0b1111) >= 0b10000 {
 		cpu.registerF = cpu.registerF | 0b00100000
 	}
-	if (A&0b1111111)+(temp&0b1111111) >= 0b10000000 {
+	if (A&0b11111111)+(temp&0b11111111) >= 0b100000000 {
+		cpu.registerF = cpu.registerF | 0b00010000
+	}
+	A = result & 0xFF
+}
+
+// Adds a value and carry flag to the arithmitic registry (register A)
+//
+// params:
+//
+//	A, arithmitic register (register A)
+//	n, a value to be added to arithmitic register, can be value from memory,
+//		   other registers, or immediate value
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0xFFFF
+func ADC(A uint16, n uint16, cpu *CPU, memory []uint8) {
+	temp := n
+	if n == cpu.registerHL {
+		temp = uint16(memory[n])
+	}
+	result := A + temp + uint16(cpu.registerF&0b00010000)
+	if result&0xFF == 0 {
+		cpu.registerF = cpu.registerF | 0b10000000
+	}
+	if (cpu.registerF & 0b01000000) == 0b01000000 {
+		cpu.registerF = cpu.registerF ^ 0b01000000
+	}
+	if (A&0b1111)+(temp&0b1111) >= 0b10000 {
+		cpu.registerF = cpu.registerF | 0b00100000
+	}
+	if (A&0b11111111)+(temp&0b11111111) >= 0b100000000 {
 		cpu.registerF = cpu.registerF | 0b00010000
 	}
 	A = result & 0xFF
@@ -771,10 +847,10 @@ func ADD16b(HL uint16, n uint16, cpu *CPU, memory []uint8) {
 	if (cpu.registerF & 0b01000000) == 0b01000000 {
 		cpu.registerF = cpu.registerF ^ 0b01000000
 	}
-	if (HL&0b11111111111)+(n&0b11111111111) >= 0b100000000000 {
+	if (HL&0b111111111111)+(n&0b111111111111) >= 0b1000000000000 {
 		cpu.registerF = cpu.registerF | 0b00100000
 	}
-	if (HL&0b111111111111111)+(n&0b111111111111111) >= 0b1000000000000000 {
+	if (HL&0b1111111111111111)+(n&0b1111111111111111) > 0b1111111111111111 {
 		cpu.registerF = cpu.registerF | 0b00010000
 	}
 	HL = result & 0xFFFF
@@ -789,17 +865,37 @@ func ADD16b(HL uint16, n uint16, cpu *CPU, memory []uint8) {
 //	cpu, CPU struct to edit flag register (register F)
 //	memory, an array of 8 bit values with the size of 0xFFFF
 func ADDSP(SP uint16, n uint16, cpu *CPU, memory []uint8) {
-	//TODO: Figure out if signed immediate value would
-	// 		subtract from SP if it was negative
-	result := SP + n
-	if cpu.registerF&0b10000000 == 0b10000000 {
+
+	var result uint16
+	if n > 127 {
+		n = (n - 1) ^ 0b11111111
+		result = SP - n
+	} else {
+		result = SP + n
+	}
+
+	if (cpu.registerF & 0b10000000) == 0b10000000 {
 		cpu.registerF = cpu.registerF ^ 0b10000000
 	}
 	if (cpu.registerF & 0b01000000) == 0b01000000 {
 		cpu.registerF = cpu.registerF ^ 0b01000000
 	}
-	// TODO: Figure out what set or reset acoording to operation means
-	// 		 in this context for flag H and C
+	if result > SP {
+		if (SP&0b111111111111)+(n&0b111111111111) >= 0b1000000000000 {
+			cpu.registerF = cpu.registerF | 0b00100000
+		}
+		if (SP&0b1111111111111111)+(n&0b1111111111111111) > 0b1111111111111111 {
+			cpu.registerF = cpu.registerF | 0b00010000
+		}
+	} else if result < SP {
+		if (SP&0b111111111111)-(n&0b111111111111) >= 0 {
+			SetHFlag(cpu)
+		}
+		if SP-n >= 0 {
+			SetCFlag(cpu)
+		}
+	}
+
 	SP = result & 0xFFFF
 }
 
@@ -814,7 +910,7 @@ func ADDSP(SP uint16, n uint16, cpu *CPU, memory []uint8) {
 //	memory, an array of 8 bit values with the size of 0xFFFF
 func SUB(A uint16, n uint16, cpu *CPU, memory []uint8) {
 	temp := n
-	if n > 0xFF {
+	if n == cpu.registerHL {
 		temp = uint16(memory[n])
 	}
 	result := A - temp
@@ -824,10 +920,40 @@ func SUB(A uint16, n uint16, cpu *CPU, memory []uint8) {
 	if (cpu.registerF & 0b01000000) != 0b01000000 {
 		cpu.registerF = cpu.registerF | 0b01000000
 	}
-	if (A&0b111)-(temp&0b111) >= 0 {
+	if (A&0b1111)-(temp&0b1111) >= 0 {
 		cpu.registerF = cpu.registerF | 0b00100000
 	}
-	if (A&0b1111111)-(temp&0b1111111) >= 0 {
+	if (A&0b11111111)-(temp&0b11111111) >= 0 {
+		cpu.registerF = cpu.registerF | 0b00010000
+	}
+	A = result & 0xFF
+}
+
+// Subtracts a value and carry flag from the arithmitic register (register A)
+//
+// params:
+//
+//	A, arithmitic register (register A)
+//	n, a value to be subtracted from arithmitic register,
+//		can be value from memory, other registers, or immediate value
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0xFFFF
+func SUC(A uint16, n uint16, cpu *CPU, memory []uint8) {
+	temp := n
+	if n == cpu.registerHL {
+		temp = uint16(memory[n])
+	}
+	result := A - (temp + uint16(cpu.registerF&0b00010000))
+	if A == temp {
+		cpu.registerF = cpu.registerF | 0b10000000
+	}
+	if (cpu.registerF & 0b01000000) != 0b01000000 {
+		cpu.registerF = cpu.registerF | 0b01000000
+	}
+	if (A&0b1111)-(temp&0b1111) >= 0 {
+		cpu.registerF = cpu.registerF | 0b00100000
+	}
+	if (A&0b11111111)-(temp&0b11111111) >= 0 {
 		cpu.registerF = cpu.registerF | 0b00010000
 	}
 	A = result & 0xFF

@@ -2,21 +2,21 @@ package GBCPU
 
 // Struct to emulate the CPU and it's registry
 type CPU struct {
-	registerA  uint8
-	registerF  uint8
-	registerB  uint8
-	registerC  uint8
-	registerD  uint8
-	registerE  uint8
-	registerH  uint8
-	registerL  uint8
+	registerA  uint16
+	registerF  uint16
+	registerB  uint16
+	registerC  uint16
+	registerD  uint16
+	registerE  uint16
+	registerH  uint16
+	registerL  uint16
 	registerAF uint16
 	registerBC uint16
 	registerDE uint16
 	registerHL uint16
 	registerSP uint16
 	registerPC uint16
-	cycles     uint32
+	cycles     uint64
 	halted     bool
 	interrupts bool
 }
@@ -75,20 +75,20 @@ func SingleToPaired(cpu *CPU) {
 // this is to be used if one of the paired registries were changed
 func PairedToSingle(cpu *CPU) {
 	if cpu.registerAF != ((uint16(cpu.registerA) << 8) | uint16(cpu.registerF)) {
-		cpu.registerA = uint8((cpu.registerAF - uint16(cpu.registerF)) >> 8)
-		cpu.registerF = uint8(cpu.registerAF - (uint16(cpu.registerA) << 8))
+		cpu.registerA = (cpu.registerAF & 0xFF00) >> 8
+		cpu.registerF = (cpu.registerAF & 0xFF)
 	}
 	if cpu.registerBC != ((uint16(cpu.registerB) << 8) | uint16(cpu.registerC)) {
-		cpu.registerB = uint8((cpu.registerBC - uint16(cpu.registerC)) >> 8)
-		cpu.registerC = uint8(cpu.registerBC - (uint16(cpu.registerB) << 8))
+		cpu.registerB = (cpu.registerBC & 0xFF00) >> 8
+		cpu.registerC = (cpu.registerBC & 0xFF)
 	}
 	if cpu.registerDE != ((uint16(cpu.registerD) << 8) | uint16(cpu.registerE)) {
-		cpu.registerD = uint8((cpu.registerDE - uint16(cpu.registerE)) >> 8)
-		cpu.registerE = uint8(cpu.registerDE - (uint16(cpu.registerD) << 8))
+		cpu.registerD = (cpu.registerDE & 0xFF00) >> 8
+		cpu.registerE = (cpu.registerDE & 0xFF)
 	}
 	if cpu.registerHL != ((uint16(cpu.registerH) << 8) | uint16(cpu.registerL)) {
-		cpu.registerH = uint8((cpu.registerHL - uint16(cpu.registerL)) >> 8)
-		cpu.registerL = uint8(cpu.registerHL - (uint16(cpu.registerH) << 8))
+		cpu.registerH = (cpu.registerHL & 0xFF00) >> 8
+		cpu.registerL = (cpu.registerHL & 0xFF)
 	}
 }
 
@@ -108,17 +108,8 @@ func NewMemory() []uint8 {
 	return memory
 }
 
-func GetMemoryAndIncrement(memory []uint8, address *uint16) uint8 {
-	*address++
-	return memory[*address]
-}
-
-func GetMemoryAndDeincrement(memory []uint8, address *uint16) uint8 {
-	*address--
-	return memory[*address]
-}
-
 func Write16bToMemory(r uint16, value uint16, memory []uint8) {
+	r--
 	memory[r] = uint8((value & 0xFF00) >> 8)
 	r--
 	memory[r] = uint8(value & 0xFF)
