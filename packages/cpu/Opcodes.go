@@ -469,9 +469,24 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam1[i] = immediateValue
 			caller.eightbitparam2[i] = immediateValue
 			break
+		case 0xC4:
+			caller.eightBitFuncArray[i] = CALLcc
+			caller.eightbitparam1[i] = 1
+			caller.eightbitparam2[i] = immediateValue
+			break
 		case 0xCA:
 			caller.eightBitFuncArray[i] = JPcc
 			caller.eightbitparam1[i] = 2
+			caller.eightbitparam2[i] = immediateValue
+			break
+		case 0xCC:
+			caller.eightBitFuncArray[i] = CALLcc
+			caller.eightbitparam1[i] = 2
+			caller.eightbitparam2[i] = immediateValue
+			break
+		case 0xCD:
+			caller.eightBitFuncArray[i] = CALL
+			caller.eightbitparam1[i] = immediateValue
 			caller.eightbitparam2[i] = immediateValue
 			break
 		case 0xD2:
@@ -479,8 +494,18 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam1[i] = 3
 			caller.eightbitparam2[i] = immediateValue
 			break
+		case 0xD4:
+			caller.eightBitFuncArray[i] = CALLcc
+			caller.eightbitparam1[i] = 3
+			caller.eightbitparam2[i] = immediateValue
+			break
 		case 0xDA:
 			caller.eightBitFuncArray[i] = JPcc
+			caller.eightbitparam1[i] = 4
+			caller.eightbitparam2[i] = immediateValue
+			break
+		case 0xDC:
+			caller.eightBitFuncArray[i] = CALLcc
 			caller.eightbitparam1[i] = 4
 			caller.eightbitparam2[i] = immediateValue
 			break
@@ -1672,6 +1697,56 @@ func JRcc(cc uint16, n uint16, cpu *CPU, memory []uint8) {
 		break
 	}
 	cpu.cycles += 8
+}
+
+// Push address of next instruction onto stack and
+// then jumps to address at immediate value
+//
+// params:
+//
+//	nn, 16 bit immediate value
+//	none, not used in function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func CALL(nn uint16, none uint16, cpu *CPU, memory []uint8) {
+	cpu.registerPC++
+	PUSH(cpu.registerSP, cpu.registerPC, cpu, memory)
+	cpu.registerPC = nn
+	cpu.cycles += 12
+}
+
+// Push address of next instruction onto stack and
+// then jumps to address at immediate value if condition is true
+//
+// params:
+//
+//	cc, condition to check
+//	nn, 16 bit immediate value
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func CALLcc(cc uint16, nn uint16, cpu *CPU, memory []uint8) {
+	switch cc {
+	case 1:
+		if !IsZFlagSet(cpu) {
+			CALL(nn, nn, cpu, memory)
+		}
+		break
+	case 2:
+		if IsZFlagSet(cpu) {
+			CALL(nn, nn, cpu, memory)
+		}
+		break
+	case 3:
+		if !IsCFlagSet(cpu) {
+			CALL(nn, nn, cpu, memory)
+		}
+		break
+	case 4:
+		if IsCFlagSet(cpu) {
+			CALL(nn, nn, cpu, memory)
+		}
+		break
+	}
 }
 
 // Takes in an opcode and runs the function with appropriate params associated with that code
