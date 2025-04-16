@@ -464,6 +464,11 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam1[i] = immediateValue
 			caller.eightbitparam2[i] = immediateValue
 			break
+		case 0xC0:
+			caller.eightBitFuncArray[i] = RETcc
+			caller.eightbitparam1[i] = 1
+			caller.eightbitparam2[i] = 0
+			break
 		case 0xC2:
 			caller.eightBitFuncArray[i] = JPcc
 			caller.eightbitparam1[i] = 1
@@ -483,6 +488,16 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightBitFuncArray[i] = RST
 			caller.eightbitparam1[i] = 0x00
 			caller.eightbitparam2[i] = immediateValue
+			break
+		case 0xC8:
+			caller.eightBitFuncArray[i] = RETcc
+			caller.eightbitparam1[i] = 2
+			caller.eightbitparam2[i] = 0
+			break
+		case 0xC9:
+			caller.eightBitFuncArray[i] = RET
+			caller.eightbitparam1[i] = 0
+			caller.eightbitparam2[i] = 0
 			break
 		case 0xCA:
 			caller.eightBitFuncArray[i] = JPcc
@@ -504,6 +519,11 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightbitparam1[i] = 0x08
 			caller.eightbitparam2[i] = immediateValue
 			break
+		case 0xD0:
+			caller.eightBitFuncArray[i] = RETcc
+			caller.eightbitparam1[i] = 3
+			caller.eightbitparam2[i] = 0
+			break
 		case 0xD2:
 			caller.eightBitFuncArray[i] = JPcc
 			caller.eightbitparam1[i] = 3
@@ -518,6 +538,16 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			caller.eightBitFuncArray[i] = RST
 			caller.eightbitparam1[i] = 0x10
 			caller.eightbitparam2[i] = immediateValue
+			break
+		case 0xD8:
+			caller.eightBitFuncArray[i] = RETcc
+			caller.eightbitparam1[i] = 4
+			caller.eightbitparam2[i] = 0
+			break
+		case 0xD9:
+			caller.eightBitFuncArray[i] = RETI
+			caller.eightbitparam1[i] = 0
+			caller.eightbitparam2[i] = 0
 			break
 		case 0xDA:
 			caller.eightBitFuncArray[i] = JPcc
@@ -1806,6 +1836,74 @@ func RST(n uint16, none uint16, cpu *CPU, memory []uint8) {
 	PUSH(cpu.registerSP, cpu.registerPC, cpu, memory)
 	cpu.registerPC = n
 	cpu.cycles += 32
+}
+
+// Pop two bytes from stack and jumps to that address
+//
+// params:
+//
+//	none1, not used in this function
+//	none2, not used in function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func RET(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
+	POP(cpu.registerSP, cpu.registerPC, cpu, memory)
+	cpu.cycles += 8
+}
+
+// Pop two bytes from stack and jumps to that address conditions are met
+//
+// params:
+//
+//	cc, condition to check
+//	none, not used in function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func RETcc(cc uint16, none uint16, cpu *CPU, memory []uint8) {
+	switch cc {
+	case 1:
+		if !IsZFlagSet(cpu) {
+			RET(cc, none, cpu, memory)
+		} else {
+			cpu.cycles += 8
+		}
+		break
+	case 2:
+		if IsZFlagSet(cpu) {
+			RET(cc, none, cpu, memory)
+		} else {
+			cpu.cycles += 8
+		}
+		break
+	case 3:
+		if !IsCFlagSet(cpu) {
+			RET(cc, none, cpu, memory)
+		} else {
+			cpu.cycles += 8
+		}
+		break
+	case 4:
+		if IsCFlagSet(cpu) {
+			RET(cc, none, cpu, memory)
+		} else {
+			cpu.cycles += 8
+		}
+		break
+	}
+}
+
+// Pop two bytes from stack and jumps to that address and enables intterupts
+//
+// params:
+//
+//	none1, not used in this function
+//	none2, not used in function
+//	cpu, CPU struct to edit flag register (register F)
+//	memory, an array of 8 bit values with the size of 0x10000
+func RETI(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
+	RET(none1, none2, cpu, memory)
+	EI(none1, none2, cpu, memory)
+	cpu.cycles += 8
 }
 
 // Takes in an opcode and runs the function with appropriate params associated with that code
