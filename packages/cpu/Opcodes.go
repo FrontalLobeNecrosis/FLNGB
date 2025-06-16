@@ -1951,7 +1951,7 @@ func RETcc(cc uint16, none uint16, cpu *CPU, memory []uint8) {
 func RETI(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
 	RET(none1, none2, cpu, memory)
 	EI(none1, none2, cpu, memory)
-	cpu.cycles += 8
+	cpu.cycles += 4
 }
 
 // Takes in an opcode and runs the function with appropriate params associated with that code
