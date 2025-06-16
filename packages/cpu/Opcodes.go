@@ -1645,33 +1645,7 @@ func SRL(n uint16, none uint16, cpu *CPU, memory []uint8) {
 //	cpu, CPU struct to edit flag register (register F)
 //	memory, an array of 8 bit values with the size of 0x10000
 func BIT(b uint16, r uint16, cpu *CPU, memory []uint8) {
-	var bit uint8
-	switch b {
-	case 0:
-		bit = 0b00000001
-		break
-	case 1:
-		bit = 0b00000010
-		break
-	case 2:
-		bit = 0b00000100
-		break
-	case 3:
-		bit = 0b00001000
-		break
-	case 4:
-		bit = 0b00010000
-		break
-	case 5:
-		bit = 0b00100000
-		break
-	case 6:
-		bit = 0b01000000
-		break
-	case 7:
-		bit = 0b10000000
-		break
-	}
+	var bit uint8 = 0b00000001 << b
 	if (r & uint16(bit)) == 0 {
 		SetZFlag(cpu)
 	}
@@ -1690,33 +1664,7 @@ func BIT(b uint16, r uint16, cpu *CPU, memory []uint8) {
 //	cpu, CPU struct to edit flag register (register F)
 //	memory, an array of 8 bit values with the size of 0x10000
 func SET(b uint16, r uint16, cpu *CPU, memory []uint8) {
-	var bit uint8
-	switch b {
-	case 0:
-		bit = 0b00000001
-		break
-	case 1:
-		bit = 0b00000010
-		break
-	case 2:
-		bit = 0b00000100
-		break
-	case 3:
-		bit = 0b00001000
-		break
-	case 4:
-		bit = 0b00010000
-		break
-	case 5:
-		bit = 0b00100000
-		break
-	case 6:
-		bit = 0b01000000
-		break
-	case 7:
-		bit = 0b10000000
-		break
-	}
+	var bit uint8 = 0b00000001 << b
 	r = r | uint16(bit)
 }
 
@@ -1729,33 +1677,7 @@ func SET(b uint16, r uint16, cpu *CPU, memory []uint8) {
 //	cpu, CPU struct to edit flag register (register F)
 //	memory, an array of 8 bit values with the size of 0x10000
 func RES(b uint16, r uint16, cpu *CPU, memory []uint8) {
-	var bit uint8
-	switch b {
-	case 0:
-		bit = 0b00000001
-		break
-	case 1:
-		bit = 0b00000010
-		break
-	case 2:
-		bit = 0b00000100
-		break
-	case 3:
-		bit = 0b00001000
-		break
-	case 4:
-		bit = 0b00010000
-		break
-	case 5:
-		bit = 0b00100000
-		break
-	case 6:
-		bit = 0b01000000
-		break
-	case 7:
-		bit = 0b10000000
-		break
-	}
+	var bit uint8 = 0b00000001 << b
 	if (r & uint16(bit)) > 0 {
 		r = r ^ uint16(bit)
 	}
