@@ -702,6 +702,7 @@ func LDr(r1 uint16, r2 uint16, cpu *CPU, memory []uint8) {
 //	value, a paired register or an 16 bit immediate value being read from
 func LD16b(r uint16, value uint16, cpu *CPU, memory []uint8) {
 	r = value
+	PairedToSingle(cpu)
 }
 
 // LDHLD loads a value from register A into memory at the
@@ -722,8 +723,8 @@ func LDHLD(r1 uint16, r2 uint16, cpu *CPU, memory []uint8) {
 	cpu.cycles += 8
 }
 
-// LDHLD loads a value from register A into memory at the
-// address value in register HL or vice-versa then deincrements HL
+// LDHLI loads a value from register A into memory at the
+// address value in register HL or vice-versa then increments HL
 //
 // params:
 //
@@ -802,6 +803,7 @@ func ADD(A uint16, n uint16, cpu *CPU, memory []uint8) {
 		cpu.registerF = cpu.registerF | 0b00010000
 	}
 	A = result & 0xFF
+	SingleToPaired(cpu)
 }
 
 // Adds a value and carry flag to the arithmitic registry (register A)
@@ -832,6 +834,7 @@ func ADC(A uint16, n uint16, cpu *CPU, memory []uint8) {
 		cpu.registerF = cpu.registerF | 0b00010000
 	}
 	A = result & 0xFF
+	SingleToPaired(cpu)
 }
 
 // Adds a value in a paired register to paired register HL
@@ -927,6 +930,7 @@ func SUB(A uint16, n uint16, cpu *CPU, memory []uint8) {
 		cpu.registerF = cpu.registerF | 0b00010000
 	}
 	A = result & 0xFF
+	SingleToPaired(cpu)
 }
 
 // Subtracts a value and carry flag from the arithmitic register (register A)
@@ -957,6 +961,7 @@ func SUC(A uint16, n uint16, cpu *CPU, memory []uint8) {
 		cpu.registerF = cpu.registerF | 0b00010000
 	}
 	A = result & 0xFF
+	SingleToPaired(cpu)
 }
 
 // Logically and a value with the arithmetic register (register A)
@@ -983,6 +988,7 @@ func AND(A uint16, n uint16, cpu *CPU, memory []uint8) {
 		cpu.registerF = cpu.registerF ^ 0b00010000
 	}
 	A = result & 0xFF
+	SingleToPaired(cpu)
 }
 
 // Logically or a value with the arithmetic register (register A)
@@ -1009,6 +1015,7 @@ func OR(A uint16, n uint16, cpu *CPU, memory []uint8) {
 		cpu.registerF = cpu.registerF ^ 0b00010000
 	}
 	A = result & 0xFF
+	SingleToPaired(cpu)
 }
 
 // Logically xor a value with the arithmetic register (register A)
@@ -1035,6 +1042,7 @@ func XOR(A uint16, n uint16, cpu *CPU, memory []uint8) {
 		cpu.registerF = cpu.registerF ^ 0b00010000
 	}
 	A = result & 0xFF
+	SingleToPaired(cpu)
 }
 
 // Compares a value with the arithmitic register (register A), importantly this will not
@@ -1086,18 +1094,20 @@ func INC(n uint16, none uint16, cpu *CPU, memory []uint8) {
 		cpu.registerF = cpu.registerF | 0b00100000
 	}
 	n++
+	SingleToPaired(cpu)
 }
 
 // Increments a 16 bit register
 //
 // params:
 //
-//	n, a 16 bit register
+//	nn, a 16 bit register
 //	none, not used in this function
 //	cpu, CPU struct to edit flag register (register F)
 //	memory, an array of 8 bit values with the size of 0xFFFF
 func INC16b(nn uint16, none uint16, cpu *CPU, memory []uint8) {
 	nn++
+	PairedToSingle(cpu)
 }
 
 // Deincrements a non paired register or value in memory
@@ -1120,6 +1130,7 @@ func DEC(n uint16, none uint16, cpu *CPU, memory []uint8) {
 		SetHFlag(cpu)
 	}
 	n--
+	SingleToPaired(cpu)
 }
 
 // Deincrements a 16 bit register
@@ -1132,6 +1143,7 @@ func DEC(n uint16, none uint16, cpu *CPU, memory []uint8) {
 //	memory, an array of 8 bit values with the size of 0x10000
 func DEC16b(nn uint16, none uint16, cpu *CPU, memory []uint8) {
 	nn--
+	PairedToSingle(cpu)
 }
 
 // Swaps the lower and upper bits of n
@@ -1159,6 +1171,7 @@ func SWAP(n uint16, none uint16, cpu *CPU, mempry []uint8) {
 	if (cpu.registerF & 0b00010000) == 0b00010000 {
 		cpu.registerF = cpu.registerF ^ 0b00010000
 	}
+	SingleToPaired(cpu)
 }
 
 // TODO: implement DAA function
@@ -1182,6 +1195,7 @@ func CPL(n uint16, none uint16, cpu *CPU, memory []uint8) {
 	if (cpu.registerF & 0b00100000) != 0b00100000 {
 		cpu.registerF = cpu.registerF | 0b00100000
 	}
+	SingleToPaired(cpu)
 	cpu.cycles += 4
 }
 
@@ -1201,6 +1215,7 @@ func CCF(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
 	if (cpu.registerF & 0b00100000) == 0b00100000 {
 		cpu.registerF = cpu.registerF ^ 0b00100000
 	}
+	SingleToPaired(cpu)
 	cpu.cycles += 4
 }
 
@@ -1220,6 +1235,7 @@ func SCF(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
 	if (cpu.registerF & 0b00100000) == 0b00100000 {
 		cpu.registerF = cpu.registerF ^ 0b00100000
 	}
+	SingleToPaired(cpu)
 	cpu.cycles += 4
 }
 
@@ -1311,6 +1327,7 @@ func RLCA(n uint16, none uint16, cpu *CPU, memory []uint8) {
 		ResetHFlag(cpu)
 	}
 	cpu.cycles += 4
+	SingleToPaired(cpu)
 }
 
 // Rotates register A left through carry flag,
@@ -1345,6 +1362,7 @@ func RLA(n uint16, none2 uint16, cpu *CPU, memory []uint8) {
 		ResetHFlag(cpu)
 	}
 	cpu.cycles += 4
+	SingleToPaired(cpu)
 }
 
 // Rotates register A right, old bit 0 becomes carry flag
@@ -1375,6 +1393,7 @@ func RRCA(n uint16, none2 uint16, cpu *CPU, memory []uint8) {
 	if (cpu.registerF & 0b00100000) == 0b00100000 {
 		ResetHFlag(cpu)
 	}
+	SingleToPaired(cpu)
 	cpu.cycles += 4
 }
 
@@ -1410,6 +1429,7 @@ func RRA(n uint16, none2 uint16, cpu *CPU, memory []uint8) {
 		ResetHFlag(cpu)
 	}
 	cpu.cycles += 4
+	SingleToPaired(cpu)
 }
 
 // Rotates a register or a spot in memory left,
@@ -1442,6 +1462,7 @@ func RLCn(n uint16, none uint16, cpu *CPU, memory []uint8) {
 		ResetHFlag(cpu)
 	}
 	cpu.cycles += 8
+	SingleToPaired(cpu)
 }
 
 // Rotates a register or a spot in memory left
@@ -1476,6 +1497,7 @@ func RLn(n uint16, none2 uint16, cpu *CPU, memory []uint8) {
 		ResetHFlag(cpu)
 	}
 	cpu.cycles += 4
+	SingleToPaired(cpu)
 }
 
 // Rotates a register or a spot in memory right,
@@ -1508,6 +1530,7 @@ func RRCn(n uint16, none uint16, cpu *CPU, memory []uint8) {
 		ResetHFlag(cpu)
 	}
 	cpu.cycles += 8
+	SingleToPaired(cpu)
 }
 
 // Rotates a register or a spot in memory right
@@ -1542,10 +1565,11 @@ func RRn(n uint16, none uint16, cpu *CPU, memory []uint8) {
 		ResetHFlag(cpu)
 	}
 	cpu.cycles += 8
+	SingleToPaired(cpu)
 }
 
 // Shifts a register or a value in memory
-// left into carry, LSB of is set to 0
+// left into carry, LSB of register is set to 0
 //
 // params:
 //
@@ -1572,6 +1596,7 @@ func SLA(n uint16, none uint16, cpu *CPU, memory []uint8) {
 			ResetCFlag(cpu)
 		}
 	}
+	SingleToPaired(cpu)
 }
 
 // Shifts a register or a value in memory
@@ -1604,6 +1629,7 @@ func SRA(n uint16, none uint16, cpu *CPU, memory []uint8) {
 			ResetCFlag(cpu)
 		}
 	}
+	SingleToPaired(cpu)
 }
 
 // Shifts a register or a value in memory
@@ -1666,6 +1692,7 @@ func BIT(b uint16, r uint16, cpu *CPU, memory []uint8) {
 func SET(b uint16, r uint16, cpu *CPU, memory []uint8) {
 	var bit uint8 = 0b00000001 << b
 	r = r | uint16(bit)
+	SingleToPaired(cpu)
 }
 
 // Resets a bit in a register or value in memory
@@ -1681,6 +1708,7 @@ func RES(b uint16, r uint16, cpu *CPU, memory []uint8) {
 	if (r & uint16(bit)) > 0 {
 		r = r ^ uint16(bit)
 	}
+	SingleToPaired(cpu)
 }
 
 // Jumps to memory address pointed to by an immediate value

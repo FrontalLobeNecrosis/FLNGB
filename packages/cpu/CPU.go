@@ -57,39 +57,23 @@ func NewCPU() *CPU {
 // Makes sure paired and single registers are properly equivilent,
 // this is to be used if one of the single registries were changed
 func SingleToPaired(cpu *CPU) {
-	if cpu.registerAF != ((uint16(cpu.registerA) << 8) | uint16(cpu.registerF)) {
-		cpu.registerAF = ((uint16(cpu.registerA) << 8) | uint16(cpu.registerF))
-	}
-	if cpu.registerBC != ((uint16(cpu.registerB) << 8) | uint16(cpu.registerC)) {
-		cpu.registerBC = ((uint16(cpu.registerB) << 8) | uint16(cpu.registerC))
-	}
-	if cpu.registerDE != ((uint16(cpu.registerD) << 8) | uint16(cpu.registerE)) {
-		cpu.registerDE = ((uint16(cpu.registerD) << 8) | uint16(cpu.registerE))
-	}
-	if cpu.registerHL != ((uint16(cpu.registerH) << 8) | uint16(cpu.registerL)) {
-		cpu.registerHL = ((uint16(cpu.registerH) << 8) | uint16(cpu.registerL))
-	}
+	cpu.registerAF = ((uint16(cpu.registerA) << 8) | uint16(cpu.registerF))
+	cpu.registerBC = ((uint16(cpu.registerB) << 8) | uint16(cpu.registerC))
+	cpu.registerDE = ((uint16(cpu.registerD) << 8) | uint16(cpu.registerE))
+	cpu.registerHL = ((uint16(cpu.registerH) << 8) | uint16(cpu.registerL))
 }
 
 // Makes sure paired and single registers are properly equivilent,
 // this is to be used if one of the paired registries were changed
 func PairedToSingle(cpu *CPU) {
-	if cpu.registerAF != ((uint16(cpu.registerA) << 8) | uint16(cpu.registerF)) {
-		cpu.registerA = (cpu.registerAF & 0xFF00) >> 8
-		cpu.registerF = (cpu.registerAF & 0xFF)
-	}
-	if cpu.registerBC != ((uint16(cpu.registerB) << 8) | uint16(cpu.registerC)) {
-		cpu.registerB = (cpu.registerBC & 0xFF00) >> 8
-		cpu.registerC = (cpu.registerBC & 0xFF)
-	}
-	if cpu.registerDE != ((uint16(cpu.registerD) << 8) | uint16(cpu.registerE)) {
-		cpu.registerD = (cpu.registerDE & 0xFF00) >> 8
-		cpu.registerE = (cpu.registerDE & 0xFF)
-	}
-	if cpu.registerHL != ((uint16(cpu.registerH) << 8) | uint16(cpu.registerL)) {
-		cpu.registerH = (cpu.registerHL & 0xFF00) >> 8
-		cpu.registerL = (cpu.registerHL & 0xFF)
-	}
+	cpu.registerA = (cpu.registerAF & 0xFF00) >> 8
+	cpu.registerF = (cpu.registerAF & 0xFF)
+	cpu.registerB = (cpu.registerBC & 0xFF00) >> 8
+	cpu.registerC = (cpu.registerBC & 0xFF)
+	cpu.registerD = (cpu.registerDE & 0xFF00) >> 8
+	cpu.registerE = (cpu.registerDE & 0xFF)
+	cpu.registerH = (cpu.registerHL & 0xFF00) >> 8
+	cpu.registerL = (cpu.registerHL & 0xFF)
 }
 
 // Initializes memory and passes it out as a slice
