@@ -15,7 +15,7 @@ type Opcode_function_caller struct {
 
 // Function makes an Opcode_function_caller and takes a CPU struct and loades the
 // caller with all the functions and params that will be called by opcodes
-func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_function_caller {
+func CallerLoader(cpu *CPU, memory []uint8, immediateValue *uint16) *Opcode_function_caller {
 	caller := new(Opcode_function_caller)
 
 	for i := 0; i <= 0xFF; i++ {
@@ -52,55 +52,55 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			switch remainder {
 			case 0:
 				caller.sixteenbitparam1[i] = cpu.registerB
-				break
+
 			case 1:
 				caller.sixteenbitparam1[i] = cpu.registerC
-				break
+
 			case 2:
 				caller.sixteenbitparam1[i] = cpu.registerD
-				break
+
 			case 3:
 				caller.sixteenbitparam1[i] = cpu.registerE
-				break
+
 			case 4:
 				caller.sixteenbitparam1[i] = cpu.registerH
-				break
+
 			case 5:
 				caller.sixteenbitparam1[i] = cpu.registerL
-				break
+
 			case 6:
 				caller.sixteenbitparam1[i] = uint16(memory[cpu.registerHL])
-				break
+
 			case 7:
 				caller.sixteenbitparam1[i] = cpu.registerA
-				break
+
 			}
 		} else {
 			switch remainder {
 			case 0:
 				caller.sixteenbitparam2[i] = cpu.registerB
-				break
+
 			case 1:
 				caller.sixteenbitparam2[i] = cpu.registerC
-				break
+
 			case 2:
 				caller.sixteenbitparam2[i] = cpu.registerD
-				break
+
 			case 3:
 				caller.sixteenbitparam2[i] = cpu.registerE
-				break
+
 			case 4:
 				caller.sixteenbitparam2[i] = cpu.registerH
-				break
+
 			case 5:
 				caller.sixteenbitparam2[i] = cpu.registerL
-				break
+
 			case 6:
 				caller.sixteenbitparam2[i] = uint16(memory[cpu.registerHL])
-				break
+
 			case 7:
 				caller.sixteenbitparam2[i] = cpu.registerA
-				break
+
 			}
 
 			if i < 0x48 || (i >= 0x80 && i < 0x88) || (i >= 0xC0 && i < 0xC8) {
@@ -138,7 +138,7 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			remainder := i % 16
 			if remainder == 1 {
 				caller.eightBitFuncArray[i] = LD16b
-				caller.eightbitparam2[i] = immediateValue
+				caller.eightbitparam2[i] = *immediateValue
 			} else if remainder == 3 {
 				caller.eightBitFuncArray[i] = INC16b
 				caller.eightbitparam2[i] = cpu.registerHL
@@ -148,16 +148,16 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 				switch i {
 				case 0x09:
 					caller.eightbitparam2[i] = cpu.registerBC
-					break
+
 				case 0x19:
 					caller.eightbitparam2[i] = cpu.registerDE
-					break
+
 				case 0x29:
 					caller.eightbitparam2[i] = cpu.registerHL
-					break
+
 				case 0x39:
 					caller.eightbitparam2[i] = cpu.registerSP
-					break
+
 				}
 			} else if remainder == 0xB {
 				caller.eightBitFuncArray[i] = DEC16b
@@ -168,7 +168,7 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 
 		if i <= 0x3E && (i%8 == 6 || i%8 == 4) {
 			remainder := i % 8
-			caller.eightbitparam2[i] = immediateValue
+			caller.eightbitparam2[i] = *immediateValue
 			if i <= 0x8 {
 				caller.eightbitparam1[i] = cpu.registerB
 			} else if i <= 0xF {
@@ -203,16 +203,16 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			switch i {
 			case 0xC5:
 				caller.eightbitparam2[i] = cpu.registerBC
-				break
+
 			case 0xD5:
 				caller.eightbitparam2[i] = cpu.registerDE
-				break
+
 			case 0xE5:
 				caller.eightbitparam2[i] = cpu.registerHL
-				break
+
 			case 0xF5:
 				caller.eightbitparam2[i] = cpu.registerAF
-				break
+
 			}
 		}
 
@@ -223,16 +223,16 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			switch i {
 			case 0xC1:
 				caller.eightbitparam2[i] = cpu.registerBC
-				break
+
 			case 0xD1:
 				caller.eightbitparam2[i] = cpu.registerDE
-				break
+
 			case 0xE1:
 				caller.eightbitparam2[i] = cpu.registerHL
-				break
+
 			case 0xF1:
 				caller.eightbitparam2[i] = cpu.registerAF
-				break
+
 			}
 		}
 
@@ -263,28 +263,28 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			switch remainder {
 			case 0:
 				caller.eightbitparam2[i] = cpu.registerB
-				break
+
 			case 1:
 				caller.eightbitparam2[i] = cpu.registerC
-				break
+
 			case 2:
 				caller.eightbitparam2[i] = cpu.registerD
-				break
+
 			case 3:
 				caller.eightbitparam2[i] = cpu.registerE
-				break
+
 			case 4:
 				caller.eightbitparam2[i] = cpu.registerH
-				break
+
 			case 5:
 				caller.eightbitparam2[i] = cpu.registerL
-				break
+
 			case 6:
 				caller.eightbitparam2[i] = cpu.registerHL
-				break
+
 			case 7:
 				caller.eightbitparam2[i] = cpu.registerA
-				break
+
 			}
 		}
 
@@ -316,32 +316,32 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 			switch remainder {
 			case 0:
 				caller.eightbitparam2[i] = cpu.registerB
-				break
+
 			case 1:
 				caller.eightbitparam2[i] = cpu.registerC
-				break
+
 			case 2:
 				caller.eightbitparam2[i] = cpu.registerD
-				break
+
 			case 3:
 				caller.eightbitparam2[i] = cpu.registerE
-				break
+
 			case 4:
 				caller.eightbitparam2[i] = cpu.registerH
-				break
+
 			case 5:
 				caller.eightbitparam2[i] = cpu.registerL
-				break
+
 			case 6:
 				if i >= 0xC6 {
-					caller.eightbitparam2[i] = immediateValue
+					caller.eightbitparam2[i] = *immediateValue
 				} else {
 					caller.eightbitparam2[i] = cpu.registerHL
 				}
-				break
+
 			case 7:
 				caller.eightbitparam2[i] = cpu.registerA
-				break
+
 			}
 		}
 
@@ -349,298 +349,298 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 		switch i {
 		case 0x00:
 			caller.eightBitFuncArray[i] = NOP
-			caller.eightbitparam1[i] = uint16(immediateValue)
-			caller.eightbitparam2[i] = uint16(immediateValue)
-			break
+			caller.eightbitparam1[i] = uint16(*immediateValue)
+			caller.eightbitparam2[i] = uint16(*immediateValue)
+
 		case 0x02:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(memory[cpu.registerBC])
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
-			break
+
 		case 0x07:
 			caller.eightBitFuncArray[i] = RLCA
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = 0
-			break
+
 		case 0x08:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = cpu.registerSP
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0x0A:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = uint16(memory[cpu.registerBC])
-			break
+
 		case 0x0F:
 			caller.eightBitFuncArray[i] = RRCA
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = 0
-			break
+
 		case 0x12:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(memory[cpu.registerDE])
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
-			break
+
 		case 0x17:
 			caller.eightBitFuncArray[i] = RLA
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = 0
-			break
+
 		case 0x18:
 			caller.eightBitFuncArray[i] = JR
-			caller.eightbitparam1[i] = immediateValue
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam1[i] = *immediateValue
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0x1A:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = uint16(memory[cpu.registerDE])
-			break
+
 		case 0x1F:
 			caller.eightBitFuncArray[i] = RRA
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = 0
-			break
+
 		case 0x20:
 			caller.eightBitFuncArray[i] = JRcc
 			caller.eightbitparam1[i] = 1
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0x22:
 			caller.eightBitFuncArray[i] = LDHLI
 			caller.eightbitparam1[i] = cpu.registerHL
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
-			break
+
 		case 0x28:
 			caller.eightBitFuncArray[i] = JRcc
 			caller.eightbitparam1[i] = 2
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0x2A:
 			caller.eightBitFuncArray[i] = LDHLI
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = cpu.registerHL
-			break
+
 		case 0x2F:
 			caller.eightBitFuncArray[i] = CPL
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0x30:
 			caller.eightBitFuncArray[i] = JRcc
 			caller.eightbitparam1[i] = 3
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0x32:
 			caller.eightBitFuncArray[i] = LDHLD
 			caller.eightbitparam1[i] = cpu.registerHL
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
-			break
+
 		case 0x37:
 			caller.eightBitFuncArray[i] = SCF
-			caller.eightbitparam1[i] = immediateValue
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam1[i] = *immediateValue
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0x38:
 			caller.eightBitFuncArray[i] = JRcc
 			caller.eightbitparam1[i] = 4
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0x3A:
 			// TODO: Fix the way the memory and HL register is accessed and updated
 			caller.eightBitFuncArray[i] = LDHLD
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = cpu.registerHL
-			break
+
 		case 0x3F:
 			caller.eightBitFuncArray[i] = CCF
-			caller.eightbitparam1[i] = immediateValue
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam1[i] = *immediateValue
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0x76:
 			caller.eightBitFuncArray[i] = HALT
 			caller.eightbitparam1[i] = 0
 			caller.eightbitparam2[i] = 0
-			break
+
 		case 0xC0:
 			caller.eightBitFuncArray[i] = RETcc
 			caller.eightbitparam1[i] = 1
 			caller.eightbitparam2[i] = 0
-			break
+
 		case 0xC2:
 			caller.eightBitFuncArray[i] = JPcc
 			caller.eightbitparam1[i] = 1
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0xC3:
 			caller.eightBitFuncArray[i] = JP
-			caller.eightbitparam1[i] = immediateValue
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam1[i] = *immediateValue
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0xC4:
 			caller.eightBitFuncArray[i] = CALLcc
 			caller.eightbitparam1[i] = 1
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0xC7:
 			caller.eightBitFuncArray[i] = RST
 			caller.eightbitparam1[i] = 0x00
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0xC8:
 			caller.eightBitFuncArray[i] = RETcc
 			caller.eightbitparam1[i] = 2
 			caller.eightbitparam2[i] = 0
-			break
+
 		case 0xC9:
 			caller.eightBitFuncArray[i] = RET
 			caller.eightbitparam1[i] = 0
 			caller.eightbitparam2[i] = 0
-			break
+
 		case 0xCA:
 			caller.eightBitFuncArray[i] = JPcc
 			caller.eightbitparam1[i] = 2
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0xCC:
 			caller.eightBitFuncArray[i] = CALLcc
 			caller.eightbitparam1[i] = 2
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0xCD:
 			caller.eightBitFuncArray[i] = CALL
-			caller.eightbitparam1[i] = immediateValue
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam1[i] = *immediateValue
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0xCF:
 			caller.eightBitFuncArray[i] = RST
 			caller.eightbitparam1[i] = 0x08
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0xD0:
 			caller.eightBitFuncArray[i] = RETcc
 			caller.eightbitparam1[i] = 3
 			caller.eightbitparam2[i] = 0
-			break
+
 		case 0xD2:
 			caller.eightBitFuncArray[i] = JPcc
 			caller.eightbitparam1[i] = 3
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0xD4:
 			caller.eightBitFuncArray[i] = CALLcc
 			caller.eightbitparam1[i] = 3
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0xD7:
 			caller.eightBitFuncArray[i] = RST
 			caller.eightbitparam1[i] = 0x10
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0xD8:
 			caller.eightBitFuncArray[i] = RETcc
 			caller.eightbitparam1[i] = 4
 			caller.eightbitparam2[i] = 0
-			break
+
 		case 0xD9:
 			caller.eightBitFuncArray[i] = RETI
 			caller.eightbitparam1[i] = 0
 			caller.eightbitparam2[i] = 0
-			break
+
 		case 0xDA:
 			caller.eightBitFuncArray[i] = JPcc
 			caller.eightbitparam1[i] = 4
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0xDC:
 			caller.eightBitFuncArray[i] = CALLcc
 			caller.eightbitparam1[i] = 4
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0xDF:
 			caller.eightBitFuncArray[i] = RST
 			caller.eightbitparam1[i] = 0x18
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0xE0:
 			caller.eightBitFuncArray[i] = LDr
-			caller.eightbitparam1[i] = uint16(memory[0xFF00+immediateValue])
+			caller.eightbitparam1[i] = uint16(memory[0xFF00+*immediateValue])
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
-			break
+
 		case 0xE2:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(memory[0xFF00+uint16(cpu.registerC)])
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
-			break
+
 		case 0xE7:
 			caller.eightBitFuncArray[i] = RST
 			caller.eightbitparam1[i] = 0x20
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0xE8:
 			caller.eightBitFuncArray[i] = ADDSP
 			caller.eightbitparam1[i] = uint16(cpu.registerSP)
-			caller.eightbitparam2[i] = uint16(immediateValue)
+			caller.eightbitparam2[i] = uint16(*immediateValue)
 		case 0xE9:
 			caller.eightBitFuncArray[i] = JPHL
 			caller.eightbitparam1[i] = cpu.registerHL
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0xEA:
 			caller.eightBitFuncArray[i] = LDr
-			caller.eightbitparam1[i] = uint16(memory[immediateValue])
+			caller.eightbitparam1[i] = uint16(memory[*immediateValue])
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
-			break
+
 		case 0xEF:
 			caller.eightBitFuncArray[i] = RST
 			caller.eightbitparam1[i] = 0x28
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0xF0:
 			caller.eightBitFuncArray[i] = LDr
-			caller.eightbitparam1[i] = uint16(memory[0xFF00+immediateValue])
+			caller.eightbitparam1[i] = uint16(memory[0xFF00+*immediateValue])
 			caller.eightbitparam2[i] = uint16(cpu.registerA)
 		case 0xF2:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
 			caller.eightbitparam2[i] = uint16(memory[0xFF00+uint16(cpu.registerC)])
-			break
+
 		case 0xF3:
 			caller.eightBitFuncArray[i] = DI
 			caller.eightbitparam1[i] = 0
 			caller.eightbitparam2[i] = 0
-			break
+
 		case 0xF7:
 			caller.eightBitFuncArray[i] = RST
 			caller.eightbitparam1[i] = 0x30
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		case 0xF8:
 			caller.eightBitFuncArray[i] = LDFlag
 			caller.eightbitparam1[i] = cpu.registerHL
-			caller.eightbitparam2[i] = cpu.registerSP + immediateValue
-			break
+			caller.eightbitparam2[i] = cpu.registerSP + *immediateValue
+
 		case 0xF9:
 			caller.eightBitFuncArray[i] = LD16b
 			caller.eightbitparam1[i] = cpu.registerSP
 			caller.eightbitparam2[i] = cpu.registerHL
-			break
+
 		case 0xFA:
 			caller.eightBitFuncArray[i] = LDr
 			caller.eightbitparam1[i] = uint16(cpu.registerA)
-			caller.eightbitparam2[i] = uint16(memory[immediateValue])
-			break
+			caller.eightbitparam2[i] = uint16(memory[*immediateValue])
+
 		case 0xFB:
 			caller.eightBitFuncArray[i] = EI
 			caller.eightbitparam1[i] = 0
 			caller.eightbitparam2[i] = 0
-			break
+
 		case 0xFF:
 			caller.eightBitFuncArray[i] = RST
 			caller.eightbitparam1[i] = 0x38
-			caller.eightbitparam2[i] = immediateValue
-			break
+			caller.eightbitparam2[i] = *immediateValue
+
 		}
 
 	}
@@ -655,7 +655,7 @@ func CallerLoader(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_funct
 //	cpu, a CPU struct containing registers to write to and read from
 //	memory, an array of 8 bit values with the size of 0xFFFF
 //	immediateValue, the immediate value included in the opcode, can be 8 or 16 bit
-func NewCaller(cpu *CPU, memory []uint8, immediateValue uint16) *Opcode_function_caller {
+func NewCaller(cpu *CPU, memory []uint8, immediateValue *uint16) *Opcode_function_caller {
 	caller := CallerLoader(cpu, memory, immediateValue)
 	return caller
 }
@@ -1739,22 +1739,22 @@ func JPcc(cc uint16, nn uint16, cpu *CPU, memory []uint8) {
 		if !IsZFlagSet(cpu) {
 			cpu.registerPC = nn
 		}
-		break
+
 	case 2:
 		if IsZFlagSet(cpu) {
 			cpu.registerPC = nn
 		}
-		break
+
 	case 3:
 		if !IsCFlagSet(cpu) {
 			cpu.registerPC = nn
 		}
-		break
+
 	case 4:
 		if IsCFlagSet(cpu) {
 			cpu.registerPC = nn
 		}
-		break
+
 	}
 	cpu.cycles += 12
 }
@@ -1810,7 +1810,7 @@ func JRcc(cc uint16, n uint16, cpu *CPU, memory []uint8) {
 				cpu.registerPC -= (n - 1) ^ 0b11111111
 			}
 		}
-		break
+
 	case 2:
 		if IsZFlagSet(cpu) {
 			if int8(n) >= 0 {
@@ -1819,7 +1819,7 @@ func JRcc(cc uint16, n uint16, cpu *CPU, memory []uint8) {
 				cpu.registerPC -= (n - 1) ^ 0b11111111
 			}
 		}
-		break
+
 	case 3:
 		if !IsCFlagSet(cpu) {
 			if int8(n) >= 0 {
@@ -1828,7 +1828,7 @@ func JRcc(cc uint16, n uint16, cpu *CPU, memory []uint8) {
 				cpu.registerPC -= (n - 1) ^ 0b11111111
 			}
 		}
-		break
+
 	case 4:
 		if IsCFlagSet(cpu) {
 			if int8(n) >= 0 {
@@ -1837,7 +1837,7 @@ func JRcc(cc uint16, n uint16, cpu *CPU, memory []uint8) {
 				cpu.registerPC -= (n - 1) ^ 0b11111111
 			}
 		}
-		break
+
 	}
 	cpu.cycles += 8
 }
@@ -1875,28 +1875,28 @@ func CALLcc(cc uint16, nn uint16, cpu *CPU, memory []uint8) {
 		} else {
 			cpu.cycles += 12
 		}
-		break
+
 	case 2:
 		if IsZFlagSet(cpu) {
 			CALL(nn, nn, cpu, memory)
 		} else {
 			cpu.cycles += 12
 		}
-		break
+
 	case 3:
 		if !IsCFlagSet(cpu) {
 			CALL(nn, nn, cpu, memory)
 		} else {
 			cpu.cycles += 12
 		}
-		break
+
 	case 4:
 		if IsCFlagSet(cpu) {
 			CALL(nn, nn, cpu, memory)
 		} else {
 			cpu.cycles += 12
 		}
-		break
+
 	}
 }
 
@@ -1943,28 +1943,28 @@ func RETcc(cc uint16, none uint16, cpu *CPU, memory []uint8) {
 		} else {
 			cpu.cycles += 8
 		}
-		break
+
 	case 2:
 		if IsZFlagSet(cpu) {
 			RET(cc, none, cpu, memory)
 		} else {
 			cpu.cycles += 8
 		}
-		break
+
 	case 3:
 		if !IsCFlagSet(cpu) {
 			RET(cc, none, cpu, memory)
 		} else {
 			cpu.cycles += 8
 		}
-		break
+
 	case 4:
 		if IsCFlagSet(cpu) {
 			RET(cc, none, cpu, memory)
 		} else {
 			cpu.cycles += 8
 		}
-		break
+
 	}
 }
 
@@ -1990,31 +1990,17 @@ func RETI(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
 //			and might be followed by an 8 or 16 bit immediate value
 //	cpu, where the registers are read from and written to
 //	memory, An array of 8 bit integers that is 0x10000 addresses long
-func ReadOpcode(opcode uint32, cpu *CPU, memory []uint8) {
+func ReadOpcode(caller *Opcode_function_caller, opcode *uint16, cpu *CPU, memory []uint8) {
 
-	var immediateValue uint16
-
-	if (opcode > 0xFF) && ((opcode&0xCB00) != 0xCB00) || opcode > 0xFFFF {
-		if opcode > 0xFFFF {
-			immediateValue = uint16(opcode & 0xFFFF)
-			opcode = opcode >> 16
-		} else {
-			immediateValue = uint16(opcode) & 0xFF
-			opcode = opcode >> 8
-		}
-	}
-
-	caller := NewCaller(cpu, memory, immediateValue)
-
-	if (opcode > 255) && ((opcode & 0xCB00) == 0xCB00) {
-		function := caller.sixteenBitFuncArray[opcode^0xCB00]
-		first := caller.sixteenbitparam1[opcode^0xCB00]
-		second := caller.sixteenbitparam2[opcode^0xCB00]
+	if (*opcode > 255) && ((*opcode & 0xCB00) == 0xCB00) {
+		function := caller.sixteenBitFuncArray[*opcode^0xCB00]
+		first := caller.sixteenbitparam1[*opcode^0xCB00]
+		second := caller.sixteenbitparam2[*opcode^0xCB00]
 		function(first, second, cpu, memory)
 	} else {
-		function := caller.eightBitFuncArray[opcode]
-		first := caller.eightbitparam1[opcode]
-		second := caller.eightbitparam2[opcode]
+		function := caller.eightBitFuncArray[*opcode]
+		first := caller.eightbitparam1[*opcode]
+		second := caller.eightbitparam2[*opcode]
 		function(first, second, cpu, memory)
 	}
 
