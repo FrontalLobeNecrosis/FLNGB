@@ -1990,17 +1990,17 @@ func RETI(none1 uint16, none2 uint16, cpu *CPU, memory []uint8) {
 //			and might be followed by an 8 or 16 bit immediate value
 //	cpu, where the registers are read from and written to
 //	memory, An array of 8 bit integers that is 0x10000 addresses long
-func ReadOpcode(caller *Opcode_function_caller, opcode *uint16, cpu *CPU, memory []uint8) {
+func ReadOpcode(caller *Opcode_function_caller, opcode uint16, cpu *CPU, memory []uint8) {
 
-	if (*opcode > 255) && ((*opcode & 0xCB00) == 0xCB00) {
-		function := caller.sixteenBitFuncArray[*opcode^0xCB00]
-		first := caller.sixteenbitparam1[*opcode^0xCB00]
-		second := caller.sixteenbitparam2[*opcode^0xCB00]
+	if (opcode > 255) && ((opcode & 0xCB00) == 0xCB00) {
+		function := caller.sixteenBitFuncArray[opcode^0xCB00]
+		first := caller.sixteenbitparam1[opcode^0xCB00]
+		second := caller.sixteenbitparam2[opcode^0xCB00]
 		function(first, second, cpu, memory)
 	} else {
-		function := caller.eightBitFuncArray[*opcode]
-		first := caller.eightbitparam1[*opcode]
-		second := caller.eightbitparam2[*opcode]
+		function := caller.eightBitFuncArray[opcode]
+		first := caller.eightbitparam1[opcode]
+		second := caller.eightbitparam2[opcode]
 		function(first, second, cpu, memory)
 	}
 
