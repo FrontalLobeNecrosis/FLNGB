@@ -1,5 +1,7 @@
 package GBCPU
 
+//TODO: Consider turning this into a hashmap datatype
+
 // This struct is to call functions from an array based on opcode
 // 8 bit function and params array is for 8 bit opcodes
 // 16 bit functions and params are for 16 bit opcodes
